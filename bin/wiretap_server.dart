@@ -1,5 +1,12 @@
-import 'package:wiretap_server/wiretap_server.dart' as wiretap_server;
+import 'dart:io';
 
-void main(List<String> arguments) {
-  print('Hello world: ${wiretap_server.calculate()}!');
+import 'package:wiretap_server/dotenv.dart';
+import 'package:wiretap_server/wiretap_server.dart';
+
+void main(List<String> arguments) async {
+  final ip = InternetAddress('127.0.0.1', type: InternetAddressType.IPv4);
+  final port = int.tryParse(env['PORT'] ?? '') ?? 8080;
+  final app = App(ip, port);
+  await app.start();
+  print('Server started on http://${app.address.address}:${app.port}');
 }
