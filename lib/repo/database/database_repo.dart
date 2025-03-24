@@ -1,12 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
-import 'package:objectbox/internal.dart';
+import 'package:hashlib/hashlib.dart';
+
 import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/dotenv.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
+import 'package:wiretap_server/repo/error/error_base.dart';
 
 class DatabaseRepo {
   final _directory = Directory('objectbox');
@@ -25,23 +27,39 @@ class DatabaseRepo {
 
   Store get store {
     if (!_storeCompleter.isCompleted) {
-      throw Exception('DatabaseRepo is not initialized');
+      throw ErrorBase(code: 'STORE_NOT_READY', message: 'Store is not ready yet', statusCode: 500);
     }
     return _store!;
   }
 
   void init() async {
     final path = _directory.path;
-    _store = openStore(directory: path);
-
+    await Task.run((path) {
+      openStore(directory: path);
+    }, path);
+    _store = Store.attach(getObjectBoxModel(), path);
+    
     final length = _store!.box<UserEntity>().count();
     if (length == 0) {
       final userBox = _store!.box<UserEntity>();
+      final masterUser = env['MASTER_USERNAME'];
+      final masterPassword = env['MASTER_PASSWORD'];
+
+      if (masterUser == null || masterPassword == null) {
+        throw ErrorBase(
+          code: 'MASTER_USER_OR_PASSWORD_NOT_SET',
+          message: 'MASTER_USERNAME and MASTER_PASSWORD must be set in .env',
+          statusCode: 500,
+        );
+      }
+
       final user = UserEntity(
-        username: env['MASTER_USERNAME'] ?? 'admin',
-        password: env['MASTER_PASSWORD'] ?? 'admin',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        username: masterUser,
+        password: bcrypt(utf8.encode(masterPassword)),
+        alias: 'Master',
+        isAdmin: true,
+        createdAt: DateTime.now().toUtc(),
+        updatedAt: DateTime.now().toUtc(),
       );
       userBox.put(user);
     }

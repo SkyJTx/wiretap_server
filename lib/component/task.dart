@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 class Task {
@@ -24,77 +23,72 @@ class Task {
     final FutureOr<void> Function(ReceivePort isolateReceivePort, SendPort mainIsolatePort) runner =
         args[1];
     final ReceivePort receivePort = ReceivePort();
-    final Completer<int> completer = Completer<int>();
-
-    final sub = receivePort.listen((message) async {
-      if (message is int) {
-        completer.complete(message);
-      }
-    });
 
     sendPort.send(receivePort.sendPort);
-
-    final status = await completer.future;
-    await sub.cancel();
-
-    if (status == HttpStatus.ok) {
-      await runner(receivePort, sendPort);
-    } else {
-      receivePort.close();
-    }
+    await runner(receivePort, sendPort);
   }
 
-  static Future<Result> run<Args, Result>(FutureOr<Result> Function(Args) runner, Args args) async {
+  static Future<Result> run<Args, Result>(
+    FutureOr<Result> Function(Args args) runner,
+    Args args,
+  ) async {
     final resultCompleter = Completer<Result>();
     final task = Task((receivePort, sendPort) async {
-      final Completer<Result> completer = Completer<Result>();
-      final sub = receivePort.listen((message) async {
+      final runnerCompleter = Completer<FutureOr<Result> Function(Args args)>();
+      final argsCompleter = Completer<Args>();
+      receivePort.listen((message) async {
         if (message is Args) {
-          completer.complete(await runner(message));
+          argsCompleter.complete(message);
+        } else if (message is FutureOr<Result> Function(Args args)) {
+          runnerCompleter.complete(message);
         }
       });
 
-      sendPort.send(HttpStatus.ok);
-      final result = await completer.future;
+      final args = await argsCompleter.future;
+      final runner = await runnerCompleter.future;
+
+      final result = await runner(args);
+
       sendPort.send(result);
-      await sub.cancel();
     });
 
-    final resultReceiverSub = task.receiver.listen((result) {
-      if (result is Result) {
-        resultCompleter.complete(result);
+    await task.create();
+    await task.start();
+    task.receiver.listen((message) {
+      if (message is Result) {
+        resultCompleter.complete(message);
       }
     });
-
-    await task.start();
     task.send(args);
-    final result = await resultCompleter.future;
-    await resultReceiverSub.cancel();
-    await task.stop();
+    await Future.delayed(Duration.zero);
+    task.send(runner);
 
-    return result;
+    return resultCompleter.future;
+  }
+
+  Future<void> create() async {
+    _isolate = await Isolate.spawn<List<dynamic>>(_task, [
+      _mainIsolateceivePort.sendPort,
+      runner,
+    ], paused: true);
   }
 
   Future<void> start() async {
     final Completer<SendPort> senderCompleter = Completer<SendPort>();
-    final sub = _mainIsolateceivePort.listen((message) {
-      if (message is SendPort) {
+    _receiverSubscription = _mainIsolateceivePort.listen((message) {
+      if (message is SendPort && !senderCompleter.isCompleted) {
         senderCompleter.complete(message);
+      } else {
+        _receiverController.add(message);
       }
     });
 
-    _isolate = await Isolate.spawn(_task, [_mainIsolateceivePort.sendPort, runner]);
+    _isolate!.resume(_isolate!.pauseCapability!);
     _isolateSendPort = await senderCompleter.future;
-    await sub.cancel();
 
-    _receiverSubscription = _mainIsolateceivePort.listen((message) {
-      _receiverController.add(message);
-    });
     _senderSubscription = _senderController.stream.listen((message) {
       _isolateSendPort?.send(message);
     });
-
-    _senderController.add(HttpStatus.ok);
   }
 
   void send<T>(T message) {

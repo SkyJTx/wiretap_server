@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:1591143958752288242",
-      "lastPropertyId": "6:535882434169198111",
+      "lastPropertyId": "9:3790385480004656585",
       "name": "UserEntity",
       "properties": [
         {
@@ -40,6 +40,24 @@
           "id": "6:535882434169198111",
           "name": "updatedAt",
           "type": 12
+        },
+        {
+          "id": "7:7114402880684998728",
+          "name": "tokenId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "5:1585128015356904556",
+          "relationTarget": "TokenEntity"
+        },
+        {
+          "id": "8:5872102694497021406",
+          "name": "lastLoginAt",
+          "type": 12
+        },
+        {
+          "id": "9:3790385480004656585",
+          "name": "isAdmin",
+          "type": 1
         }
       ],
       "relations": []
@@ -79,10 +97,48 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:5618564190109727475",
+      "lastPropertyId": "5:145311391931549093",
+      "name": "TokenEntity",
+      "properties": [
+        {
+          "id": "1:3034040697452294493",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3940156827549707294",
+          "name": "accessToken",
+          "type": 9,
+          "flags": 40,
+          "indexId": "3:3728138504318694215"
+        },
+        {
+          "id": "3:3123554331567337967",
+          "name": "refreshToken",
+          "type": 9,
+          "flags": 40,
+          "indexId": "4:9195411007785992758"
+        },
+        {
+          "id": "4:547373883008597846",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "5:145311391931549093",
+          "name": "updatedAt",
+          "type": 12
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:6166184572072936910",
-  "lastIndexId": "2:3270485644131319427",
+  "lastEntityId": "3:5618564190109727475",
+  "lastIndexId": "5:1585128015356904556",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

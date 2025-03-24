@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 
 import 'repo/database/entity/setting_entity.dart';
+import 'repo/database/entity/token_entity.dart';
 import 'repo/database/entity/user_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -22,7 +23,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(1, 1591143958752288242),
       name: 'UserEntity',
-      lastPropertyId: const obx_int.IdUid(6, 535882434169198111),
+      lastPropertyId: const obx_int.IdUid(9, 3790385480004656585),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -55,6 +56,23 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(6, 535882434169198111),
             name: 'updatedAt',
             type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 7114402880684998728),
+            name: 'tokenId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(5, 1585128015356904556),
+            relationTarget: 'TokenEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 5872102694497021406),
+            name: 'lastLoginAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 3790385480004656585),
+            name: 'isAdmin',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -88,6 +106,42 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(5, 5687173321421546541),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 5618564190109727475),
+      name: 'TokenEntity',
+      lastPropertyId: const obx_int.IdUid(5, 145311391931549093),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 3034040697452294493),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3940156827549707294),
+            name: 'accessToken',
+            type: 9,
+            flags: 40,
+            indexId: const obx_int.IdUid(3, 3728138504318694215)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 3123554331567337967),
+            name: 'refreshToken',
+            type: 9,
+            flags: 40,
+            indexId: const obx_int.IdUid(4, 9195411007785992758)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 547373883008597846),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 145311391931549093),
             name: 'updatedAt',
             type: 12,
             flags: 0)
@@ -130,8 +184,8 @@ obx.Store openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 6166184572072936910),
-      lastIndexId: const obx_int.IdUid(2, 3270485644131319427),
+      lastEntityId: const obx_int.IdUid(3, 5618564190109727475),
+      lastIndexId: const obx_int.IdUid(5, 1585128015356904556),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
@@ -145,7 +199,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final bindings = <Type, obx_int.EntityDefinition>{
     UserEntity: obx_int.EntityDefinition<UserEntity>(
         model: _entities[0],
-        toOneRelations: (UserEntity object) => [],
+        toOneRelations: (UserEntity object) => [object.token],
         toManyRelations: (UserEntity object) => {},
         getId: (UserEntity object) => object.id,
         setId: (UserEntity object, int id) {
@@ -156,29 +210,44 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final passwordOffset = fbb.writeString(object.password);
           final aliasOffset =
               object.alias == null ? null : fbb.writeString(object.alias!);
-          fbb.startTable(7);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, usernameOffset);
           fbb.addOffset(2, passwordOffset);
           fbb.addOffset(3, aliasOffset);
           fbb.addInt64(4, object.createdAt.microsecondsSinceEpoch * 1000);
           fbb.addInt64(5, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(6, object.token.targetId);
+          fbb.addInt64(
+              7,
+              object.lastLoginAt == null
+                  ? null
+                  : object.lastLoginAt!.microsecondsSinceEpoch * 1000);
+          fbb.addBool(8, object.isAdmin);
           fbb.finish(fbb.endTable());
           return object.id;
         },
         objectFromFB: (obx.Store store, ByteData fbData) {
           final buffer = fb.BufferContext(fbData);
           final rootOffset = buffer.derefObject(0);
+          final lastLoginAtValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18);
           final usernameParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
           final passwordParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 8, '');
           final aliasParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 10);
+          final isAdminParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 20, false);
           final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
               (const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0) /
                       1000)
                   .round());
+          final lastLoginAtParam = lastLoginAtValue == null
+              ? null
+              : DateTime.fromMicrosecondsSinceEpoch(
+                  (lastLoginAtValue / 1000).round());
           final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
               (const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0) /
                       1000)
@@ -187,10 +256,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
               username: usernameParam,
               password: passwordParam,
               alias: aliasParam,
+              isAdmin: isAdminParam,
               createdAt: createdAtParam,
+              lastLoginAt: lastLoginAtParam,
               updatedAt: updatedAtParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
+          object.token.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0);
+          object.token.attach(store);
           return object;
         }),
     SettingEntity: obx_int.EntityDefinition<SettingEntity>(
@@ -236,6 +309,52 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    TokenEntity: obx_int.EntityDefinition<TokenEntity>(
+        model: _entities[2],
+        toOneRelations: (TokenEntity object) => [],
+        toManyRelations: (TokenEntity object) => {},
+        getId: (TokenEntity object) => object.id,
+        setId: (TokenEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (TokenEntity object, fb.Builder fbb) {
+          final accessTokenOffset = fbb.writeString(object.accessToken);
+          final refreshTokenOffset = fbb.writeString(object.refreshToken);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, accessTokenOffset);
+          fbb.addOffset(2, refreshTokenOffset);
+          fbb.addInt64(3, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(4, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final accessTokenParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, '');
+          final refreshTokenParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, '');
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0) /
+                      1000)
+                  .round());
+          final object = TokenEntity(
+              accessToken: accessTokenParam,
+              refreshToken: refreshTokenParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
         })
   };
 
@@ -267,6 +386,18 @@ class UserEntity_ {
   /// See [UserEntity.updatedAt].
   static final updatedAt =
       obx.QueryDateNanoProperty<UserEntity>(_entities[0].properties[5]);
+
+  /// See [UserEntity.token].
+  static final token = obx.QueryRelationToOne<UserEntity, TokenEntity>(
+      _entities[0].properties[6]);
+
+  /// See [UserEntity.lastLoginAt].
+  static final lastLoginAt =
+      obx.QueryDateNanoProperty<UserEntity>(_entities[0].properties[7]);
+
+  /// See [UserEntity.isAdmin].
+  static final isAdmin =
+      obx.QueryBooleanProperty<UserEntity>(_entities[0].properties[8]);
 }
 
 /// [SettingEntity] entity fields to define ObjectBox queries.
@@ -290,4 +421,27 @@ class SettingEntity_ {
   /// See [SettingEntity.updatedAt].
   static final updatedAt =
       obx.QueryDateNanoProperty<SettingEntity>(_entities[1].properties[4]);
+}
+
+/// [TokenEntity] entity fields to define ObjectBox queries.
+class TokenEntity_ {
+  /// See [TokenEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<TokenEntity>(_entities[2].properties[0]);
+
+  /// See [TokenEntity.accessToken].
+  static final accessToken =
+      obx.QueryStringProperty<TokenEntity>(_entities[2].properties[1]);
+
+  /// See [TokenEntity.refreshToken].
+  static final refreshToken =
+      obx.QueryStringProperty<TokenEntity>(_entities[2].properties[2]);
+
+  /// See [TokenEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<TokenEntity>(_entities[2].properties[3]);
+
+  /// See [TokenEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<TokenEntity>(_entities[2].properties[4]);
 }
