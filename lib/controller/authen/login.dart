@@ -1,8 +1,12 @@
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
-import 'package:wiretap_server/repo/error/error_base.dart';
-import 'package:wiretap_server/repo/login/authenication_repo.dart';
+import 'package:wiretap_server/data_model/data.dart';
+import 'package:wiretap_server/data_model/error_base.dart';
+import 'package:wiretap_server/data_model/token.dart';
+import 'package:wiretap_server/repo/authen/authen_repo.dart';
+import 'package:wiretap_server/repo/database/entity/token_entity.dart';
+import 'package:wiretap_server/constant/response.dart' as response;
 
 Future<Response> login(Request req) async {
   late final String body;
@@ -28,10 +32,9 @@ Future<Response> login(Request req) async {
     ).toResponse();
   }
 
-  late final String accessToken;
-  late final String refreshToken;
+  late final TokenEntity token;
   try {
-    [accessToken, refreshToken] = await AuthenticationRepo().login(username, password);
+    token = await AuthenRepo().login(username, password);
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
@@ -42,5 +45,11 @@ Future<Response> login(Request req) async {
     ).toResponse();
   }
 
-  return Response.ok(jsonEncode({'accessToken': accessToken, 'refreshToken': refreshToken}));
+  return Response.ok(
+    Data(
+      message: 'Login successfully',
+      data: Token.fromEntity(token).toMap(),
+    ).toJson(),
+    headers: response.jsonHeader,
+  );
 }

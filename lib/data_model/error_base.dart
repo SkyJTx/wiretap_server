@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
+import 'package:wiretap_server/constant/response.dart';
 
 class ErrorBase {
   final int statusCode;
@@ -8,18 +9,13 @@ class ErrorBase {
   final String code;
   final Object? data;
 
-  ErrorBase({
-    required this.statusCode,
-    required this.message,
-    required this.code,
-    this.data,
-  });
+  ErrorBase({required this.statusCode, required this.message, required this.code, this.data});
 
   Response toResponse() {
     return Response(
       statusCode,
       body: jsonEncode({'code': code, 'message': message}),
-      headers: {'content-type': 'application/json'},
+      headers: jsonHeader,
     );
   }
 
@@ -28,4 +24,3 @@ class ErrorBase {
     return '$code: $message';
   }
 }
-

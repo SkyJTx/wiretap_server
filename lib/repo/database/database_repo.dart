@@ -8,7 +8,7 @@ import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/dotenv.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
-import 'package:wiretap_server/repo/error/error_base.dart';
+import 'package:wiretap_server/data_model/error_base.dart';
 
 class DatabaseRepo {
   final _directory = Directory('objectbox');
