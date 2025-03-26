@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:hashlib/hashlib.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/database_repo.dart';
 import 'package:wiretap_server/repo/database/entity/token_entity.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
-import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/repo/token/token_repo.dart';
 
 class AuthenRepo with TokenMixin {
@@ -26,7 +26,7 @@ class AuthenRepo with TokenMixin {
       final userBox = store.box<UserEntity>();
       final user = userBox.query(UserEntity_.username.equals(username)).build().findFirst();
       if (user == null) {
-        throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+        throw ErrorType.badRequest.addMessage('User not found');
       }
       return user.isAdmin;
     }, username);
@@ -45,10 +45,10 @@ class AuthenRepo with TokenMixin {
     }, username);
 
     if (userInDB == null || paswordInDB == null) {
-      throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+      throw ErrorType.badRequest.addMessage('User not found');
     }
     if (!bcryptVerify(paswordInDB, utf8.encode(password))) {
-      throw ErrorBase(code: 'PASSWORD_INCORRECT', message: 'Password incorrect', statusCode: 400);
+      throw ErrorType.badRequest.addMessage('Password is incorrect');
     }
 
     final accessToken = await generateAccessToken(username);
@@ -83,11 +83,7 @@ class AuthenRepo with TokenMixin {
     }, [username, accessToken, refreshToken]);
 
     if (token == null) {
-      throw ErrorBase(
-        code: 'FAILED_TO_CREATE_TOKEN',
-        message: 'Failed to create token',
-        statusCode: 500,
-      );
+      throw ErrorType.internalServerError.addMessage('Failed to generate token');
     }
 
     return token;
@@ -124,11 +120,7 @@ class AuthenRepo with TokenMixin {
     }, [newAccessToken, user.token.target!.refreshToken]);
 
     if (token == null) {
-      throw ErrorBase(
-        code: 'FAILED_TO_REFRESH_TOKEN',
-        message: 'Failed to refresh token',
-        statusCode: 500,
-      );
+      throw ErrorType.internalServerError.addMessage('Failed to refresh token');
     }
 
     return token;

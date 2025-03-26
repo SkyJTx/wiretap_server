@@ -5,7 +5,7 @@ import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/user.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
-import 'package:wiretap_server/constant/response.dart' as response;
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/repo/user/user_repo.dart';
 
 Future<Response> addUser(Request req) async {
@@ -20,11 +20,7 @@ Future<Response> addUser(Request req) async {
     alias = body['alias'] as String?;
     isAdmin = body['isAdmin'] as bool?;
   } catch (e) {
-    return ErrorBase(
-      statusCode: 400,
-      message: 'Invalid request body',
-      code: 'INVALID_REQUEST_BODY',
-    ).toResponse();
+    return badRequest;
   }
 
   late final UserEntity user;
@@ -33,15 +29,11 @@ Future<Response> addUser(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to add user',
-      code: 'FAILED_TO_ADD_USER',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to add user');
   }
 
   return Response.ok(
     Data(message: 'User added successfully', data: UserSafe.fromEntity(user).toMap()).toJson(),
-    headers: response.jsonHeader,
+    headers: jsonHeader,
   );
 }

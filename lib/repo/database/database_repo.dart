@@ -5,10 +5,10 @@ import 'dart:io';
 import 'package:hashlib/hashlib.dart';
 
 import 'package:wiretap_server/component/task.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/dotenv.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
-import 'package:wiretap_server/data_model/error_base.dart';
 
 class DatabaseRepo {
   final _directory = Directory('objectbox');
@@ -27,7 +27,7 @@ class DatabaseRepo {
 
   Store get store {
     if (!_storeCompleter.isCompleted) {
-      throw ErrorBase(code: 'STORE_NOT_READY', message: 'Store is not ready yet', statusCode: 500);
+      throw ErrorType.internalServerError.addMessage('Database is not ready');
     }
     return _store!;
   }
@@ -46,11 +46,7 @@ class DatabaseRepo {
       final masterPassword = env['MASTER_PASSWORD'];
 
       if (masterUser == null || masterPassword == null) {
-        throw ErrorBase(
-          code: 'MASTER_USER_OR_PASSWORD_NOT_SET',
-          message: 'MASTER_USERNAME and MASTER_PASSWORD must be set in .env',
-          statusCode: 500,
-        );
+        throw ErrorType.internalServerError.addMessage('Master user and password not found');
       }
 
       final user = UserEntity(

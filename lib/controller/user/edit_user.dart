@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:wiretap_server/constant/response.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/data_model/user.dart';
@@ -25,19 +25,11 @@ Future<Response> editUser(Request req) async {
     alias = body['alias'] as String?;
     isAdmin = body['isAdmin'] as bool?;
   } catch (e) {
-    return ErrorBase(
-      statusCode: 400,
-      message: 'Invalid request body',
-      code: 'INVALID_REQUEST_BODY',
-    ).toResponse();
+    return badRequest;
   }
 
   if (requester.id != id && !requester.isAdmin) {
-    return ErrorBase(
-      statusCode: 403,
-      message: 'Permission denied',
-      code: 'PERMISSION_DENIED',
-    ).toResponse();
+    return permissionDenied;
   }
 
   late final int adminCount;
@@ -46,19 +38,11 @@ Future<Response> editUser(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get admin count',
-      code: 'FAILED_TO_GET_ADMIN_COUNT',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to get user count');
   }
 
   if (adminCount < 2 && isAdmin == false) {
-    return ErrorBase(
-      statusCode: 403,
-      message: 'Must have a remaining admin',
-      code: 'CANNOT_REMOVE_LAST_ADMIN',
-    ).toResponse();
+    return ErrorType.stateRequirementAreNotMet.toResponse('Must have a remaining admin');
   }
 
   late final UserEntity user;
@@ -67,11 +51,7 @@ Future<Response> editUser(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to edit user',
-      code: 'FAILED_TO_EDIT_USER',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to edit user');
   }
 
   return Response.ok(

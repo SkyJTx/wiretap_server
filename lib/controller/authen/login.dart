@@ -1,23 +1,19 @@
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/data_model/token.dart';
 import 'package:wiretap_server/repo/authen/authen_repo.dart';
 import 'package:wiretap_server/repo/database/entity/token_entity.dart';
-import 'package:wiretap_server/constant/response.dart' as response;
 
 Future<Response> login(Request req) async {
   late final String body;
   try {
     body = await req.readAsString();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to read request body',
-      code: 'FAILED_TO_READ_REQUEST_BODY',
-    ).toResponse();
+    return failedToGetUserFromRequest;
   }
 
   late final String username;
@@ -46,10 +42,7 @@ Future<Response> login(Request req) async {
   }
 
   return Response.ok(
-    Data(
-      message: 'Login successfully',
-      data: Token.fromEntity(token).toMap(),
-    ).toJson(),
-    headers: response.jsonHeader,
+    Data(message: 'Login successfully', data: Token.fromEntity(token).toMap()).toJson(),
+    headers: jsonHeader,
   );
 }

@@ -1,6 +1,6 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:wiretap_server/constant/response.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/objectbox.g.dart';
@@ -15,19 +15,11 @@ Future<Response> deleteUserById(Request req) async {
     requester = req.context['user'] as UserEntity;
     id = int.parse(req.params['id']!);
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get user from request',
-      code: 'FAILED_TO_GET_USER_FROM_REQUEST',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to get user from request');
   }
-  
+
   if (requester.id != id && !requester.isAdmin) {
-    return ErrorBase(
-      statusCode: 403,
-      message: 'Permission denied',
-      code: 'PERMISSION_DENIED',
-    ).toResponse();
+    return permissionDenied;
   }
 
   late final int adminCount;
@@ -38,27 +30,15 @@ Future<Response> deleteUserById(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get user count',
-      code: 'FAILED_TO_GET_USER_COUNT',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to get user count');
   }
 
   if (adminCount < 2 && requester.isAdmin) {
-    return ErrorBase(
-      statusCode: 403,
-      message: 'Must have a remaining admin',
-      code: 'CANNOT_REMOVE_LAST_ADMIN',
-    ).toResponse();
+    return ErrorType.stateRequirementAreNotMet.toResponse('Must have a remaining admin');
   }
 
   if (userCount < 2) {
-    return ErrorBase(
-      statusCode: 403,
-      message: 'Must have a remaining user',
-      code: 'CANNOT_REMOVE_LAST_USER',
-    ).toResponse();
+    return ErrorType.stateRequirementAreNotMet.toResponse('Cannot remove last user');
   }
 
   try {
@@ -66,15 +46,8 @@ Future<Response> deleteUserById(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to delete user',
-      code: 'FAILED_TO_DELETE_USER',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to delete user');
   }
 
-  return Response.ok(
-    Data(message: 'User deleted', data: null).toJson(),
-    headers: jsonHeader,
-  );
+  return Response.ok(Data(message: 'User deleted', data: null).toJson(), headers: jsonHeader);
 }

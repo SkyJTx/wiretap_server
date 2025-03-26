@@ -1,6 +1,6 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:wiretap_server/constant/response.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/paginable_data.dart';
 import 'package:wiretap_server/data_model/user.dart';
@@ -13,11 +13,7 @@ Future<Response> getSelf(Request req) async {
   try {
     user = req.context['user'] as UserEntity;
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get user from request',
-      code: 'FAILED_TO_GET_USER_FROM_REQUEST',
-    ).toResponse();
+    return failedToGetUserFromRequest;
   }
 
   return Response.ok(
@@ -31,11 +27,7 @@ Future<Response> getUserById(Request req) async {
   try {
     id = int.parse(req.params['id']!);
   } catch (e) {
-    return ErrorBase(
-      statusCode: 400,
-      message: 'Invalid request query',
-      code: 'INVALID_REQUEST_QUERY',
-    ).toResponse();
+    return badRequest;
   }
 
   late final UserEntity targetUser;
@@ -44,11 +36,7 @@ Future<Response> getUserById(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get user',
-      code: 'FAILED_TO_GET_USER',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to get user');
   }
 
   return Response.ok(
@@ -67,11 +55,7 @@ Future<Response> getUsers(Request req) async {
     page = int.parse(req.url.queryParameters['page']!);
     searchParam = req.url.queryParameters['searchParam'];
   } catch (e) {
-    return ErrorBase(
-      statusCode: 400,
-      message: 'Invalid request query',
-      code: 'INVALID_REQUEST_QUERY',
-    ).toResponse();
+    return badRequest;
   }
 
   late final List<UserEntity> users;
@@ -84,11 +68,7 @@ Future<Response> getUsers(Request req) async {
   } on ErrorBase catch (e) {
     return e.toResponse();
   } catch (e) {
-    return ErrorBase(
-      statusCode: 500,
-      message: 'Failed to get users',
-      code: 'FAILED_TO_GET_USERS',
-    ).toResponse();
+    return ErrorType.internalServerError.toResponse('Failed to get users');
   }
 
   return Response.ok(

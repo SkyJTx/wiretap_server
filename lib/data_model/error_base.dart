@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
-import 'package:wiretap_server/constant/response.dart';
+import 'package:wiretap_server/constant/constant.dart';
 
 class ErrorBase {
   final int statusCode;

@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:hashlib/hashlib.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/database_repo.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
-import 'package:wiretap_server/data_model/error_base.dart';
 
 class UserRepo {
   UserRepo.createInstance();
@@ -21,7 +21,7 @@ class UserRepo {
       final userBox = store.box<UserEntity>();
       final user = userBox.query(UserEntity_.username.equals(username)).build().findFirst();
       if (user == null) {
-        throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+        throw ErrorType.badRequest.addMessage('User not found');
       }
       return user;
     }, username);
@@ -32,7 +32,7 @@ class UserRepo {
       final userBox = store.box<UserEntity>();
       final user = userBox.get(id);
       if (user == null) {
-        throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+        throw ErrorType.badRequest.addMessage('User not found');
       }
       return user;
     }, id);
@@ -52,18 +52,10 @@ class UserRepo {
               )
               .build();
       if (userPerPage < 1) {
-        throw ErrorBase(
-          code: 'INVALID_REQUEST_QUERY',
-          message: 'User per page must not be less than 1',
-          statusCode: 400,
-        );
+        throw ErrorType.invalidRequest.addMessage('User per page must not be less than 1');
       }
       if (page < 1) {
-        throw ErrorBase(
-          code: 'INVALID_REQUEST_QUERY',
-          message: 'Page must not be less than 1',
-          statusCode: 400,
-        );
+        throw ErrorType.invalidRequest.addMessage('Page must not be less than 1');
       }
       query.offset = (userPerPage * (page - 1));
       query.limit = userPerPage;
@@ -120,18 +112,14 @@ class UserRepo {
       try {
         id = userBox.put(user);
       } catch (e) {
-        throw ErrorBase(
-          code: 'USER_ALREADY_EXISTS',
-          message: 'User already exists',
-          statusCode: 400,
-        );
+        throw ErrorType.badRequest.addMessage('Username already exists');
       }
 
       return userBox.get(id);
     }, [username, password, alias, isAdmin]);
 
     if (user == null) {
-      throw ErrorBase(code: 'FAILED_TO_ADD_USER', message: 'Failed to add user', statusCode: 500);
+      throw ErrorType.internalServerError.addMessage('Failed to add user');
     }
 
     return user;
@@ -145,7 +133,7 @@ class UserRepo {
 
       final user = userBox.get(id);
       if (user == null) {
-        throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+        throw ErrorType.badRequest.addMessage('User not found');
       }
 
       if (username != null) user.username = username;
@@ -161,7 +149,7 @@ class UserRepo {
     }, [id, username, alias, isAdmin]);
 
     if (user == null) {
-      throw ErrorBase(code: 'FAILED_TO_EDIT_USER', message: 'Failed to edit user', statusCode: 500);
+      throw ErrorType.internalServerError.addMessage('Failed to edit user');
     }
 
     return user;
@@ -172,7 +160,7 @@ class UserRepo {
       final userBox = store.box<UserEntity>();
       final user = userBox.get(id);
       if (user == null) {
-        throw ErrorBase(code: 'USER_NOT_FOUND', message: 'User not found', statusCode: 400);
+        throw ErrorType.badRequest.addMessage('User not found');
       }
       userBox.remove(id);
     }, id);

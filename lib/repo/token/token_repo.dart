@@ -1,6 +1,6 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/dotenv.dart';
-import 'package:wiretap_server/data_model/error_base.dart';
 
 class TokenRepo with TokenMixin {
   TokenRepo.createInstance();
@@ -17,11 +17,7 @@ mixin TokenMixin {
   String get accessTokenSecret {
     final result = env['ACCESS_TOKEN_SECRET'];
     if (result == null) {
-      throw ErrorBase(
-        code: 'ACCESS_TOKEN_SECRET_NOT_SET',
-        message: 'ACCESS_TOKEN_SECRET must be set in .env',
-        statusCode: 500,
-      );
+      throw ErrorType.internalServerError.addMessage('Secret access token not found');
     }
     return result;
   }
@@ -29,11 +25,7 @@ mixin TokenMixin {
   String get refreshTokenSecret {
     final result = env['REFRESH_TOKEN_SECRET'];
     if (result == null) {
-      throw ErrorBase(
-        code: 'REFRESH_TOKEN_SECRET_NOT_SET',
-        message: 'REFRESH_TOKEN_SECRET must be set in .env',
-        statusCode: 500,
-      );
+      throw ErrorType.internalServerError.addMessage('Secret refresh token not found');
     }
     return result;
   }
