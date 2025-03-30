@@ -11,7 +11,7 @@ import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/entity/user_entity.dart';
 
 class DatabaseRepo {
-  final _directory = Directory('objectbox');
+  static final directory = Directory('objectbox');
 
   DatabaseRepo.createInstance();
 
@@ -33,7 +33,7 @@ class DatabaseRepo {
   }
 
   void init() async {
-    final path = _directory.path;
+    final path = directory.path;
     await Task.run((path) {
       openStore(directory: path);
     }, path);

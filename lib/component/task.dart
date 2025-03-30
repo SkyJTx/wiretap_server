@@ -4,19 +4,19 @@ import 'dart:isolate';
 class Task {
   final StreamController _senderController = StreamController.broadcast();
   final StreamController _receiverController = StreamController.broadcast();
-  final FutureOr<void> Function(ReceivePort isolateReceivePort, SendPort mainIsolatePort)? runner;
+  final FutureOr<void> Function(ReceivePort isolateReceivePort, SendPort mainIsolatePort) runner;
 
-  late final ReceivePort _mainIsolateceivePort;
+  final ReceivePort _mainIsolateceivePort = ReceivePort();
   SendPort? _isolateSendPort;
 
   Isolate? _isolate;
   StreamSubscription? _senderSubscription;
   StreamSubscription? _receiverSubscription;
 
-  Task(this.runner) : _mainIsolateceivePort = ReceivePort();
+  Task(this.runner);
 
-  Stream get sender => _senderController.stream;
-  Stream get receiver => _receiverController.stream;
+  StreamController get sender => _senderController;
+  StreamController get receiver => _receiverController;
 
   static FutureOr<void> _task(List<dynamic> args) async {
     final SendPort sendPort = args[0];
@@ -54,7 +54,7 @@ class Task {
 
     await task.create();
     await task.start();
-    task.receiver.listen((message) {
+    final sub = task.receiver.stream.listen((message) {
       if (message is Result) {
         resultCompleter.complete(message);
       }
@@ -63,7 +63,10 @@ class Task {
     await Future.delayed(Duration.zero);
     task.send(runner);
 
-    return resultCompleter.future;
+    return resultCompleter.future.whenComplete(() {
+      sub.cancel();
+      task.stop();
+    });
   }
 
   Future<void> create() async {

@@ -4,3 +4,4 @@
 .env
 objectbox/
 download/
+public/

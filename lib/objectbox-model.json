@@ -135,17 +135,481 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:3799516475480960145",
+      "lastPropertyId": "4:8910133980029609985",
+      "name": "I2cEntity",
+      "properties": [
+        {
+          "id": "1:7698345386005513637",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7483843667764236023",
+          "name": "isEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:3729879107504318467",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "4:8910133980029609985",
+          "name": "updatedAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:565132082596704691",
+      "lastPropertyId": "7:6338780503443486014",
+      "name": "I2cMsgEntity",
+      "properties": [
+        {
+          "id": "1:184056375962814272",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1854986371562027845",
+          "name": "address",
+          "type": 6,
+          "flags": 8,
+          "indexId": "6:4317689447656276056"
+        },
+        {
+          "id": "3:7909436177946359579",
+          "name": "isTenBitAddressing",
+          "type": 1
+        },
+        {
+          "id": "4:8442693547221401871",
+          "name": "isWriteMode",
+          "type": 1
+        },
+        {
+          "id": "5:8372691473753740063",
+          "name": "data",
+          "type": 9
+        },
+        {
+          "id": "6:2735583331761052322",
+          "name": "i2cEntityId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "7:7733143071311474677",
+          "relationTarget": "I2cEntity"
+        },
+        {
+          "id": "7:6338780503443486014",
+          "name": "createdAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "6:7274666047118581762",
+      "lastPropertyId": "5:2135957247903561130",
+      "name": "LogEntity",
+      "properties": [
+        {
+          "id": "1:8532179862413529738",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7188003485061549627",
+          "name": "protocol",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "8:6412613093291266126"
+        },
+        {
+          "id": "3:4071311000403761281",
+          "name": "data",
+          "type": 9
+        },
+        {
+          "id": "4:8965724468490395311",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "5:2135957247903561130",
+          "name": "sessionEntityId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "9:988245863220205401",
+          "relationTarget": "SessionEntity"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:4881337329695922853",
+      "lastPropertyId": "4:4492639528596927267",
+      "name": "ModbusEntity",
+      "properties": [
+        {
+          "id": "1:4614697579910186820",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:565628673301354875",
+          "name": "isEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:1285674282820053400",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "4:4492639528596927267",
+          "name": "updatedAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:1576781441302969476",
+      "lastPropertyId": "11:7059626215995325211",
+      "name": "ModbusMsgEntity",
+      "properties": [
+        {
+          "id": "1:8481006334186740412",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2285256851283976278",
+          "name": "address",
+          "type": 6,
+          "flags": 8,
+          "indexId": "10:6878326304749272098"
+        },
+        {
+          "id": "3:1933693652296999992",
+          "name": "functionCode",
+          "type": 6
+        },
+        {
+          "id": "4:7122175102537192091",
+          "name": "startingAddress",
+          "type": 6
+        },
+        {
+          "id": "5:8003391460131713288",
+          "name": "quantity",
+          "type": 6
+        },
+        {
+          "id": "6:3302538311456856217",
+          "name": "dataLength",
+          "type": 6
+        },
+        {
+          "id": "7:8512382065688624741",
+          "name": "data",
+          "type": 9
+        },
+        {
+          "id": "8:3380792889644004493",
+          "name": "queryCRC",
+          "type": 6
+        },
+        {
+          "id": "9:8093823161390503321",
+          "name": "responseCRC",
+          "type": 6
+        },
+        {
+          "id": "10:5630247167942536460",
+          "name": "modbusEntityId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "11:3817703956342409651",
+          "relationTarget": "ModbusEntity"
+        },
+        {
+          "id": "11:7059626215995325211",
+          "name": "createdAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "9:8626287468106562584",
+      "lastPropertyId": "8:3387996719087881132",
+      "name": "OscilloscopeEntity",
+      "properties": [
+        {
+          "id": "1:2817035780719624586",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2362515486926658508",
+          "name": "isEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:7123283230199033179",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "4:1235173051182772022",
+          "name": "activeDecodeMode",
+          "type": 6
+        },
+        {
+          "id": "5:9002975950629325951",
+          "name": "activeDecodeFormat",
+          "type": 6
+        },
+        {
+          "id": "6:3291909892894705272",
+          "name": "ip",
+          "type": 9
+        },
+        {
+          "id": "7:515297004203163960",
+          "name": "port",
+          "type": 6
+        },
+        {
+          "id": "8:3387996719087881132",
+          "name": "updatedAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "10:5770786057272350450",
+      "lastPropertyId": "8:6558712946559320947",
+      "name": "OscilloscopeMsgEntity",
+      "properties": [
+        {
+          "id": "1:4908651617011597458",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5597659673828342183",
+          "name": "isDecodeEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:1945555684655039657",
+          "name": "decodeMode",
+          "type": 6
+        },
+        {
+          "id": "4:2260084940420089208",
+          "name": "decodeFormat",
+          "type": 6
+        },
+        {
+          "id": "6:1203693841644318631",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "7:7040327561810365395",
+          "name": "oscilloscopeEntityId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "12:7204505195906848866",
+          "relationTarget": "OscilloscopeEntity"
+        },
+        {
+          "id": "8:6558712946559320947",
+          "name": "imageFilePath",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "11:7924342231681085205",
+      "lastPropertyId": "12:1617697014558643173",
+      "name": "SessionEntity",
+      "properties": [
+        {
+          "id": "1:7248373889134116730",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7466172260402545386",
+          "name": "name",
+          "type": 9,
+          "flags": 40,
+          "indexId": "13:1573385183675795239"
+        },
+        {
+          "id": "3:5375518160845419024",
+          "name": "isRunning",
+          "type": 1
+        },
+        {
+          "id": "4:7853757892381220747",
+          "name": "i2cId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "14:6489649139314590046",
+          "relationTarget": "I2cEntity"
+        },
+        {
+          "id": "5:6025373326141647348",
+          "name": "spiId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "15:6692105533483583979",
+          "relationTarget": "SpiEntity"
+        },
+        {
+          "id": "6:112950717062449296",
+          "name": "modbusId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "16:3680444169034931859",
+          "relationTarget": "ModbusEntity"
+        },
+        {
+          "id": "7:3391685634819641691",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "8:7109944946849148418",
+          "name": "updatedAt",
+          "type": 12
+        },
+        {
+          "id": "9:4594039809718565146",
+          "name": "lastUsedAt",
+          "type": 12
+        },
+        {
+          "id": "10:4480833909796430696",
+          "name": "stoppedAt",
+          "type": 12
+        },
+        {
+          "id": "11:1909851423372488382",
+          "name": "startedAt",
+          "type": 12
+        },
+        {
+          "id": "12:1617697014558643173",
+          "name": "oscilloscopeId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "18:7090363233486733281",
+          "relationTarget": "OscilloscopeEntity"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "12:3322876674323425941",
+      "lastPropertyId": "4:8449558977064482813",
+      "name": "SpiEntity",
+      "properties": [
+        {
+          "id": "1:8905022928366420716",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7298742627190252850",
+          "name": "isEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:8526618426307227437",
+          "name": "createdAt",
+          "type": 12
+        },
+        {
+          "id": "4:8449558977064482813",
+          "name": "updatedAt",
+          "type": 12
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "13:4307673660729718376",
+      "lastPropertyId": "5:2999111557716177310",
+      "name": "SpiMsgEntity",
+      "properties": [
+        {
+          "id": "1:3636185818638240870",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3676161971131826899",
+          "name": "mosi",
+          "type": 9
+        },
+        {
+          "id": "3:9136829009393873966",
+          "name": "miso",
+          "type": 9
+        },
+        {
+          "id": "4:212399227863161045",
+          "name": "spiEntityId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "17:1807683996421743353",
+          "relationTarget": "SpiEntity"
+        },
+        {
+          "id": "5:2999111557716177310",
+          "name": "createdAt",
+          "type": 12
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "3:5618564190109727475",
-  "lastIndexId": "5:1585128015356904556",
+  "lastEntityId": "13:4307673660729718376",
+  "lastIndexId": "19:2661140894817801191",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
-  "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredIndexUids": [
+    2661140894817801191
+  ],
+  "retiredPropertyUids": [
+    8813169573060757922
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

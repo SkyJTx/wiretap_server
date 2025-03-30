@@ -13,6 +13,16 @@ import 'package:objectbox/internal.dart'
     as obx_int; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart' as obx;
 
+import 'repo/database/entity/message_entity/i2c_msg_entity.dart';
+import 'repo/database/entity/message_entity/modbus_msg_entity.dart';
+import 'repo/database/entity/message_entity/oscilloscope_msg_entity.dart';
+import 'repo/database/entity/message_entity/spi_msg_entity.dart';
+import 'repo/database/entity/peripheral_entity/i2c_entity.dart';
+import 'repo/database/entity/peripheral_entity/modbus_entity.dart';
+import 'repo/database/entity/peripheral_entity/oscilloscope_entity.dart';
+import 'repo/database/entity/peripheral_entity/spi_entity.dart';
+import 'repo/database/entity/session_entity/log_entity.dart';
+import 'repo/database/entity/session_entity/session_entity.dart';
 import 'repo/database/entity/setting_entity.dart';
 import 'repo/database/entity/token_entity.dart';
 import 'repo/database/entity/user_entity.dart';
@@ -147,6 +157,476 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(4, 3799516475480960145),
+      name: 'I2cEntity',
+      lastPropertyId: const obx_int.IdUid(4, 8910133980029609985),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 7698345386005513637),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7483843667764236023),
+            name: 'isEnabled',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 3729879107504318467),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 8910133980029609985),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[
+        obx_int.ModelBacklink(
+            name: 'i2cMsgEntities',
+            srcEntity: 'I2cMsgEntity',
+            srcField: 'i2cEntity')
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(5, 565132082596704691),
+      name: 'I2cMsgEntity',
+      lastPropertyId: const obx_int.IdUid(7, 6338780503443486014),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 184056375962814272),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 1854986371562027845),
+            name: 'address',
+            type: 6,
+            flags: 8,
+            indexId: const obx_int.IdUid(6, 4317689447656276056)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 7909436177946359579),
+            name: 'isTenBitAddressing',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 8442693547221401871),
+            name: 'isWriteMode',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 8372691473753740063),
+            name: 'data',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 2735583331761052322),
+            name: 'i2cEntityId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(7, 7733143071311474677),
+            relationTarget: 'I2cEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 6338780503443486014),
+            name: 'createdAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(6, 7274666047118581762),
+      name: 'LogEntity',
+      lastPropertyId: const obx_int.IdUid(5, 2135957247903561130),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 8532179862413529738),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7188003485061549627),
+            name: 'protocol',
+            type: 9,
+            flags: 2048,
+            indexId: const obx_int.IdUid(8, 6412613093291266126)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 4071311000403761281),
+            name: 'data',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 8965724468490395311),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 2135957247903561130),
+            name: 'sessionEntityId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(9, 988245863220205401),
+            relationTarget: 'SessionEntity')
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(7, 4881337329695922853),
+      name: 'ModbusEntity',
+      lastPropertyId: const obx_int.IdUid(4, 4492639528596927267),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 4614697579910186820),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 565628673301354875),
+            name: 'isEnabled',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1285674282820053400),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 4492639528596927267),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[
+        obx_int.ModelBacklink(
+            name: 'modbusMsgEntities',
+            srcEntity: 'ModbusMsgEntity',
+            srcField: 'modbusEntity')
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(8, 1576781441302969476),
+      name: 'ModbusMsgEntity',
+      lastPropertyId: const obx_int.IdUid(11, 7059626215995325211),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 8481006334186740412),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 2285256851283976278),
+            name: 'address',
+            type: 6,
+            flags: 8,
+            indexId: const obx_int.IdUid(10, 6878326304749272098)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1933693652296999992),
+            name: 'functionCode',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 7122175102537192091),
+            name: 'startingAddress',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 8003391460131713288),
+            name: 'quantity',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 3302538311456856217),
+            name: 'dataLength',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 8512382065688624741),
+            name: 'data',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 3380792889644004493),
+            name: 'queryCRC',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 8093823161390503321),
+            name: 'responseCRC',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 5630247167942536460),
+            name: 'modbusEntityId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(11, 3817703956342409651),
+            relationTarget: 'ModbusEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 7059626215995325211),
+            name: 'createdAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(9, 8626287468106562584),
+      name: 'OscilloscopeEntity',
+      lastPropertyId: const obx_int.IdUid(8, 3387996719087881132),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 2817035780719624586),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 2362515486926658508),
+            name: 'isEnabled',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 7123283230199033179),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 1235173051182772022),
+            name: 'activeDecodeMode',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 9002975950629325951),
+            name: 'activeDecodeFormat',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 3291909892894705272),
+            name: 'ip',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 515297004203163960),
+            name: 'port',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 3387996719087881132),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[
+        obx_int.ModelBacklink(
+            name: 'oscilloscopeMsgEntities',
+            srcEntity: 'OscilloscopeMsgEntity',
+            srcField: 'oscilloscopeEntity')
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(10, 5770786057272350450),
+      name: 'OscilloscopeMsgEntity',
+      lastPropertyId: const obx_int.IdUid(8, 6558712946559320947),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 4908651617011597458),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 5597659673828342183),
+            name: 'isDecodeEnabled',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1945555684655039657),
+            name: 'decodeMode',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 2260084940420089208),
+            name: 'decodeFormat',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 1203693841644318631),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 7040327561810365395),
+            name: 'oscilloscopeEntityId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(12, 7204505195906848866),
+            relationTarget: 'OscilloscopeEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 6558712946559320947),
+            name: 'imageFilePath',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(11, 7924342231681085205),
+      name: 'SessionEntity',
+      lastPropertyId: const obx_int.IdUid(12, 1617697014558643173),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 7248373889134116730),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7466172260402545386),
+            name: 'name',
+            type: 9,
+            flags: 40,
+            indexId: const obx_int.IdUid(13, 1573385183675795239)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 5375518160845419024),
+            name: 'isRunning',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 7853757892381220747),
+            name: 'i2cId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(14, 6489649139314590046),
+            relationTarget: 'I2cEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 6025373326141647348),
+            name: 'spiId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(15, 6692105533483583979),
+            relationTarget: 'SpiEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 112950717062449296),
+            name: 'modbusId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(16, 3680444169034931859),
+            relationTarget: 'ModbusEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 3391685634819641691),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 7109944946849148418),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 4594039809718565146),
+            name: 'lastUsedAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 4480833909796430696),
+            name: 'stoppedAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 1909851423372488382),
+            name: 'startedAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(12, 1617697014558643173),
+            name: 'oscilloscopeId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(18, 7090363233486733281),
+            relationTarget: 'OscilloscopeEntity')
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[
+        obx_int.ModelBacklink(
+            name: 'logs', srcEntity: 'LogEntity', srcField: 'sessionEntity')
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(12, 3322876674323425941),
+      name: 'SpiEntity',
+      lastPropertyId: const obx_int.IdUid(4, 8449558977064482813),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 8905022928366420716),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7298742627190252850),
+            name: 'isEnabled',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 8526618426307227437),
+            name: 'createdAt',
+            type: 12,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 8449558977064482813),
+            name: 'updatedAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[
+        obx_int.ModelBacklink(
+            name: 'spiMsgEntities',
+            srcEntity: 'SpiMsgEntity',
+            srcField: 'spiEntity')
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(13, 4307673660729718376),
+      name: 'SpiMsgEntity',
+      lastPropertyId: const obx_int.IdUid(5, 2999111557716177310),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 3636185818638240870),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3676161971131826899),
+            name: 'mosi',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 9136829009393873966),
+            name: 'miso',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 212399227863161045),
+            name: 'spiEntityId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(17, 1807683996421743353),
+            relationTarget: 'SpiEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 2999111557716177310),
+            name: 'createdAt',
+            type: 12,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -184,13 +664,13 @@ obx.Store openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(3, 5618564190109727475),
-      lastIndexId: const obx_int.IdUid(5, 1585128015356904556),
+      lastEntityId: const obx_int.IdUid(13, 4307673660729718376),
+      lastIndexId: const obx_int.IdUid(19, 2661140894817801191),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
-      retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredIndexUids: const [2661140894817801191],
+      retiredPropertyUids: const [8813169573060757922],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -355,6 +835,559 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    I2cEntity: obx_int.EntityDefinition<I2cEntity>(
+        model: _entities[3],
+        toOneRelations: (I2cEntity object) => [],
+        toManyRelations: (I2cEntity object) => {
+              obx_int.RelInfo<I2cMsgEntity>.toOneBacklink(6, object.id,
+                      (I2cMsgEntity srcObject) => srcObject.i2cEntity):
+                  object.i2cMsgEntities
+            },
+        getId: (I2cEntity object) => object.id,
+        setId: (I2cEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (I2cEntity object, fb.Builder fbb) {
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isEnabled);
+          fbb.addInt64(2, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(3, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0) /
+                      1000)
+                  .round());
+          final object = I2cEntity(
+              isEnabled: isEnabledParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          obx_int.InternalToManyAccess.setRelInfo<I2cEntity>(
+              object.i2cMsgEntities,
+              store,
+              obx_int.RelInfo<I2cMsgEntity>.toOneBacklink(6, object.id,
+                  (I2cMsgEntity srcObject) => srcObject.i2cEntity));
+          return object;
+        }),
+    I2cMsgEntity: obx_int.EntityDefinition<I2cMsgEntity>(
+        model: _entities[4],
+        toOneRelations: (I2cMsgEntity object) => [object.i2cEntity],
+        toManyRelations: (I2cMsgEntity object) => {},
+        getId: (I2cMsgEntity object) => object.id,
+        setId: (I2cMsgEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (I2cMsgEntity object, fb.Builder fbb) {
+          final dataOffset = fbb.writeString(object.data);
+          fbb.startTable(8);
+          fbb.addInt64(0, object.id);
+          fbb.addInt64(1, object.address);
+          fbb.addBool(2, object.isTenBitAddressing);
+          fbb.addBool(3, object.isWriteMode);
+          fbb.addOffset(4, dataOffset);
+          fbb.addInt64(5, object.i2cEntity.targetId);
+          fbb.addInt64(6, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final addressParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
+          final isTenBitAddressingParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final isWriteModeParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 10, false);
+          final dataParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 12, '');
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0) /
+                      1000)
+                  .round());
+          final object = I2cMsgEntity(
+              address: addressParam,
+              isTenBitAddressing: isTenBitAddressingParam,
+              isWriteMode: isWriteModeParam,
+              data: dataParam,
+              createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.i2cEntity.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
+          object.i2cEntity.attach(store);
+          return object;
+        }),
+    LogEntity: obx_int.EntityDefinition<LogEntity>(
+        model: _entities[5],
+        toOneRelations: (LogEntity object) => [object.sessionEntity],
+        toManyRelations: (LogEntity object) => {},
+        getId: (LogEntity object) => object.id,
+        setId: (LogEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (LogEntity object, fb.Builder fbb) {
+          final protocolOffset = fbb.writeString(object.protocol);
+          final dataOffset = fbb.writeString(object.data);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, protocolOffset);
+          fbb.addOffset(2, dataOffset);
+          fbb.addInt64(3, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(4, object.sessionEntity.targetId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final protocolParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final dataParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0) /
+                      1000)
+                  .round());
+          final object = LogEntity(
+              protocol: protocolParam,
+              data: dataParam,
+              createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.sessionEntity.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
+          object.sessionEntity.attach(store);
+          return object;
+        }),
+    ModbusEntity: obx_int.EntityDefinition<ModbusEntity>(
+        model: _entities[6],
+        toOneRelations: (ModbusEntity object) => [],
+        toManyRelations: (ModbusEntity object) => {
+              obx_int.RelInfo<ModbusMsgEntity>.toOneBacklink(10, object.id,
+                      (ModbusMsgEntity srcObject) => srcObject.modbusEntity):
+                  object.modbusMsgEntities
+            },
+        getId: (ModbusEntity object) => object.id,
+        setId: (ModbusEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (ModbusEntity object, fb.Builder fbb) {
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isEnabled);
+          fbb.addInt64(2, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(3, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0) /
+                      1000)
+                  .round());
+          final object = ModbusEntity(
+              isEnabled: isEnabledParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          obx_int.InternalToManyAccess.setRelInfo<ModbusEntity>(
+              object.modbusMsgEntities,
+              store,
+              obx_int.RelInfo<ModbusMsgEntity>.toOneBacklink(10, object.id,
+                  (ModbusMsgEntity srcObject) => srcObject.modbusEntity));
+          return object;
+        }),
+    ModbusMsgEntity: obx_int.EntityDefinition<ModbusMsgEntity>(
+        model: _entities[7],
+        toOneRelations: (ModbusMsgEntity object) => [object.modbusEntity],
+        toManyRelations: (ModbusMsgEntity object) => {},
+        getId: (ModbusMsgEntity object) => object.id,
+        setId: (ModbusMsgEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (ModbusMsgEntity object, fb.Builder fbb) {
+          final dataOffset = fbb.writeString(object.data);
+          fbb.startTable(12);
+          fbb.addInt64(0, object.id);
+          fbb.addInt64(1, object.address);
+          fbb.addInt64(2, object.functionCode);
+          fbb.addInt64(3, object.startingAddress);
+          fbb.addInt64(4, object.quantity);
+          fbb.addInt64(5, object.dataLength);
+          fbb.addOffset(6, dataOffset);
+          fbb.addInt64(7, object.queryCRC);
+          fbb.addInt64(8, object.responseCRC);
+          fbb.addInt64(9, object.modbusEntity.targetId);
+          fbb.addInt64(10, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final addressParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
+          final functionCodeParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
+          final startingAddressParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
+          final quantityParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
+          final dataLengthParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
+          final dataParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 16, '');
+          final queryCRCParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0);
+          final responseCRCParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0) /
+                      1000)
+                  .round());
+          final object = ModbusMsgEntity(
+              address: addressParam,
+              functionCode: functionCodeParam,
+              startingAddress: startingAddressParam,
+              quantity: quantityParam,
+              dataLength: dataLengthParam,
+              data: dataParam,
+              queryCRC: queryCRCParam,
+              responseCRC: responseCRCParam,
+              createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.modbusEntity.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0);
+          object.modbusEntity.attach(store);
+          return object;
+        }),
+    OscilloscopeEntity: obx_int.EntityDefinition<OscilloscopeEntity>(
+        model: _entities[8],
+        toOneRelations: (OscilloscopeEntity object) => [],
+        toManyRelations: (OscilloscopeEntity object) => {
+              obx_int.RelInfo<OscilloscopeMsgEntity>.toOneBacklink(
+                      7,
+                      object.id,
+                      (OscilloscopeMsgEntity srcObject) =>
+                          srcObject.oscilloscopeEntity):
+                  object.oscilloscopeMsgEntities
+            },
+        getId: (OscilloscopeEntity object) => object.id,
+        setId: (OscilloscopeEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (OscilloscopeEntity object, fb.Builder fbb) {
+          final ipOffset =
+              object.ip == null ? null : fbb.writeString(object.ip!);
+          fbb.startTable(9);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isEnabled);
+          fbb.addInt64(2, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(3, object.activeDecodeMode);
+          fbb.addInt64(4, object.activeDecodeFormat);
+          fbb.addOffset(5, ipOffset);
+          fbb.addInt64(6, object.port);
+          fbb.addInt64(7, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final ipParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 14);
+          final portParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 16);
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final activeDecodeModeParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 10);
+          final activeDecodeFormatParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 12);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0) /
+                      1000)
+                  .round());
+          final object = OscilloscopeEntity(
+              ip: ipParam,
+              port: portParam,
+              isEnabled: isEnabledParam,
+              activeDecodeMode: activeDecodeModeParam,
+              activeDecodeFormat: activeDecodeFormatParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          obx_int.InternalToManyAccess.setRelInfo<OscilloscopeEntity>(
+              object.oscilloscopeMsgEntities,
+              store,
+              obx_int.RelInfo<OscilloscopeMsgEntity>.toOneBacklink(
+                  7,
+                  object.id,
+                  (OscilloscopeMsgEntity srcObject) =>
+                      srcObject.oscilloscopeEntity));
+          return object;
+        }),
+    OscilloscopeMsgEntity: obx_int.EntityDefinition<OscilloscopeMsgEntity>(
+        model: _entities[9],
+        toOneRelations: (OscilloscopeMsgEntity object) =>
+            [object.oscilloscopeEntity],
+        toManyRelations: (OscilloscopeMsgEntity object) => {},
+        getId: (OscilloscopeMsgEntity object) => object.id,
+        setId: (OscilloscopeMsgEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (OscilloscopeMsgEntity object, fb.Builder fbb) {
+          final imageFilePathOffset = fbb.writeString(object.imageFilePath);
+          fbb.startTable(9);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isDecodeEnabled);
+          fbb.addInt64(2, object.decodeMode);
+          fbb.addInt64(3, object.decodeFormat);
+          fbb.addInt64(5, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(6, object.oscilloscopeEntity.targetId);
+          fbb.addOffset(7, imageFilePathOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final isDecodeEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final decodeModeParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 8);
+          final decodeFormatParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 10);
+          final imageFilePathParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, '');
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0) /
+                      1000)
+                  .round());
+          final object = OscilloscopeMsgEntity(
+              isDecodeEnabled: isDecodeEnabledParam,
+              decodeMode: decodeModeParam,
+              decodeFormat: decodeFormatParam,
+              imageFilePath: imageFilePathParam,
+              createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.oscilloscopeEntity.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0);
+          object.oscilloscopeEntity.attach(store);
+          return object;
+        }),
+    SessionEntity: obx_int.EntityDefinition<SessionEntity>(
+        model: _entities[10],
+        toOneRelations: (SessionEntity object) =>
+            [object.i2c, object.spi, object.modbus, object.oscilloscope],
+        toManyRelations: (SessionEntity object) => {
+              obx_int.RelInfo<LogEntity>.toOneBacklink(5, object.id,
+                  (LogEntity srcObject) => srcObject.sessionEntity): object.logs
+            },
+        getId: (SessionEntity object) => object.id,
+        setId: (SessionEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (SessionEntity object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(13);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addBool(2, object.isRunning);
+          fbb.addInt64(3, object.i2c.targetId);
+          fbb.addInt64(4, object.spi.targetId);
+          fbb.addInt64(5, object.modbus.targetId);
+          fbb.addInt64(6, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(7, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(
+              8,
+              object.lastUsedAt == null
+                  ? null
+                  : object.lastUsedAt!.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(
+              9,
+              object.stoppedAt == null
+                  ? null
+                  : object.stoppedAt!.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(
+              10,
+              object.startedAt == null
+                  ? null
+                  : object.startedAt!.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(11, object.oscilloscope.targetId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final lastUsedAtValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 20);
+          final stoppedAtValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 22);
+          final startedAtValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 24);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final isRunningParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0) /
+                      1000)
+                  .round());
+          final lastUsedAtParam = lastUsedAtValue == null
+              ? null
+              : DateTime.fromMicrosecondsSinceEpoch(
+                  (lastUsedAtValue / 1000).round());
+          final stoppedAtParam = stoppedAtValue == null
+              ? null
+              : DateTime.fromMicrosecondsSinceEpoch(
+                  (stoppedAtValue / 1000).round());
+          final startedAtParam = startedAtValue == null
+              ? null
+              : DateTime.fromMicrosecondsSinceEpoch(
+                  (startedAtValue / 1000).round());
+          final object = SessionEntity(
+              name: nameParam,
+              isRunning: isRunningParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam,
+              lastUsedAt: lastUsedAtParam,
+              stoppedAt: stoppedAtParam,
+              startedAt: startedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.i2c.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
+          object.i2c.attach(store);
+          object.spi.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
+          object.spi.attach(store);
+          object.modbus.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
+          object.modbus.attach(store);
+          object.oscilloscope.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0);
+          object.oscilloscope.attach(store);
+          obx_int.InternalToManyAccess.setRelInfo<SessionEntity>(
+              object.logs,
+              store,
+              obx_int.RelInfo<LogEntity>.toOneBacklink(5, object.id,
+                  (LogEntity srcObject) => srcObject.sessionEntity));
+          return object;
+        }),
+    SpiEntity: obx_int.EntityDefinition<SpiEntity>(
+        model: _entities[11],
+        toOneRelations: (SpiEntity object) => [],
+        toManyRelations: (SpiEntity object) => {
+              obx_int.RelInfo<SpiMsgEntity>.toOneBacklink(4, object.id,
+                      (SpiMsgEntity srcObject) => srcObject.spiEntity):
+                  object.spiMsgEntities
+            },
+        getId: (SpiEntity object) => object.id,
+        setId: (SpiEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (SpiEntity object, fb.Builder fbb) {
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isEnabled);
+          fbb.addInt64(2, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.addInt64(3, object.updatedAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0) /
+                      1000)
+                  .round());
+          final updatedAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0) /
+                      1000)
+                  .round());
+          final object = SpiEntity(
+              isEnabled: isEnabledParam,
+              createdAt: createdAtParam,
+              updatedAt: updatedAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          obx_int.InternalToManyAccess.setRelInfo<SpiEntity>(
+              object.spiMsgEntities,
+              store,
+              obx_int.RelInfo<SpiMsgEntity>.toOneBacklink(4, object.id,
+                  (SpiMsgEntity srcObject) => srcObject.spiEntity));
+          return object;
+        }),
+    SpiMsgEntity: obx_int.EntityDefinition<SpiMsgEntity>(
+        model: _entities[12],
+        toOneRelations: (SpiMsgEntity object) => [object.spiEntity],
+        toManyRelations: (SpiMsgEntity object) => {},
+        getId: (SpiMsgEntity object) => object.id,
+        setId: (SpiMsgEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (SpiMsgEntity object, fb.Builder fbb) {
+          final mosiOffset = fbb.writeString(object.mosi);
+          final misoOffset = fbb.writeString(object.miso);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, mosiOffset);
+          fbb.addOffset(2, misoOffset);
+          fbb.addInt64(3, object.spiEntity.targetId);
+          fbb.addInt64(4, object.createdAt.microsecondsSinceEpoch * 1000);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final mosiParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final misoParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
+              (const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0) /
+                      1000)
+                  .round());
+          final object = SpiMsgEntity(
+              mosi: mosiParam, miso: misoParam, createdAt: createdAtParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          object.spiEntity.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
+          object.spiEntity.attach(store);
+          return object;
         })
   };
 
@@ -444,4 +1477,328 @@ class TokenEntity_ {
   /// See [TokenEntity.updatedAt].
   static final updatedAt =
       obx.QueryDateNanoProperty<TokenEntity>(_entities[2].properties[4]);
+}
+
+/// [I2cEntity] entity fields to define ObjectBox queries.
+class I2cEntity_ {
+  /// See [I2cEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<I2cEntity>(_entities[3].properties[0]);
+
+  /// See [I2cEntity.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<I2cEntity>(_entities[3].properties[1]);
+
+  /// See [I2cEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<I2cEntity>(_entities[3].properties[2]);
+
+  /// See [I2cEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<I2cEntity>(_entities[3].properties[3]);
+
+  /// see [I2cEntity.i2cMsgEntities]
+  static final i2cMsgEntities =
+      obx.QueryBacklinkToMany<I2cMsgEntity, I2cEntity>(I2cMsgEntity_.i2cEntity);
+}
+
+/// [I2cMsgEntity] entity fields to define ObjectBox queries.
+class I2cMsgEntity_ {
+  /// See [I2cMsgEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<I2cMsgEntity>(_entities[4].properties[0]);
+
+  /// See [I2cMsgEntity.address].
+  static final address =
+      obx.QueryIntegerProperty<I2cMsgEntity>(_entities[4].properties[1]);
+
+  /// See [I2cMsgEntity.isTenBitAddressing].
+  static final isTenBitAddressing =
+      obx.QueryBooleanProperty<I2cMsgEntity>(_entities[4].properties[2]);
+
+  /// See [I2cMsgEntity.isWriteMode].
+  static final isWriteMode =
+      obx.QueryBooleanProperty<I2cMsgEntity>(_entities[4].properties[3]);
+
+  /// See [I2cMsgEntity.data].
+  static final data =
+      obx.QueryStringProperty<I2cMsgEntity>(_entities[4].properties[4]);
+
+  /// See [I2cMsgEntity.i2cEntity].
+  static final i2cEntity = obx.QueryRelationToOne<I2cMsgEntity, I2cEntity>(
+      _entities[4].properties[5]);
+
+  /// See [I2cMsgEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<I2cMsgEntity>(_entities[4].properties[6]);
+}
+
+/// [LogEntity] entity fields to define ObjectBox queries.
+class LogEntity_ {
+  /// See [LogEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<LogEntity>(_entities[5].properties[0]);
+
+  /// See [LogEntity.protocol].
+  static final protocol =
+      obx.QueryStringProperty<LogEntity>(_entities[5].properties[1]);
+
+  /// See [LogEntity.data].
+  static final data =
+      obx.QueryStringProperty<LogEntity>(_entities[5].properties[2]);
+
+  /// See [LogEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<LogEntity>(_entities[5].properties[3]);
+
+  /// See [LogEntity.sessionEntity].
+  static final sessionEntity = obx.QueryRelationToOne<LogEntity, SessionEntity>(
+      _entities[5].properties[4]);
+}
+
+/// [ModbusEntity] entity fields to define ObjectBox queries.
+class ModbusEntity_ {
+  /// See [ModbusEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<ModbusEntity>(_entities[6].properties[0]);
+
+  /// See [ModbusEntity.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<ModbusEntity>(_entities[6].properties[1]);
+
+  /// See [ModbusEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<ModbusEntity>(_entities[6].properties[2]);
+
+  /// See [ModbusEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<ModbusEntity>(_entities[6].properties[3]);
+
+  /// see [ModbusEntity.modbusMsgEntities]
+  static final modbusMsgEntities =
+      obx.QueryBacklinkToMany<ModbusMsgEntity, ModbusEntity>(
+          ModbusMsgEntity_.modbusEntity);
+}
+
+/// [ModbusMsgEntity] entity fields to define ObjectBox queries.
+class ModbusMsgEntity_ {
+  /// See [ModbusMsgEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[0]);
+
+  /// See [ModbusMsgEntity.address].
+  static final address =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[1]);
+
+  /// See [ModbusMsgEntity.functionCode].
+  static final functionCode =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[2]);
+
+  /// See [ModbusMsgEntity.startingAddress].
+  static final startingAddress =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[3]);
+
+  /// See [ModbusMsgEntity.quantity].
+  static final quantity =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[4]);
+
+  /// See [ModbusMsgEntity.dataLength].
+  static final dataLength =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[5]);
+
+  /// See [ModbusMsgEntity.data].
+  static final data =
+      obx.QueryStringProperty<ModbusMsgEntity>(_entities[7].properties[6]);
+
+  /// See [ModbusMsgEntity.queryCRC].
+  static final queryCRC =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[7]);
+
+  /// See [ModbusMsgEntity.responseCRC].
+  static final responseCRC =
+      obx.QueryIntegerProperty<ModbusMsgEntity>(_entities[7].properties[8]);
+
+  /// See [ModbusMsgEntity.modbusEntity].
+  static final modbusEntity =
+      obx.QueryRelationToOne<ModbusMsgEntity, ModbusEntity>(
+          _entities[7].properties[9]);
+
+  /// See [ModbusMsgEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<ModbusMsgEntity>(_entities[7].properties[10]);
+}
+
+/// [OscilloscopeEntity] entity fields to define ObjectBox queries.
+class OscilloscopeEntity_ {
+  /// See [OscilloscopeEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<OscilloscopeEntity>(_entities[8].properties[0]);
+
+  /// See [OscilloscopeEntity.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<OscilloscopeEntity>(_entities[8].properties[1]);
+
+  /// See [OscilloscopeEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<OscilloscopeEntity>(_entities[8].properties[2]);
+
+  /// See [OscilloscopeEntity.activeDecodeMode].
+  static final activeDecodeMode =
+      obx.QueryIntegerProperty<OscilloscopeEntity>(_entities[8].properties[3]);
+
+  /// See [OscilloscopeEntity.activeDecodeFormat].
+  static final activeDecodeFormat =
+      obx.QueryIntegerProperty<OscilloscopeEntity>(_entities[8].properties[4]);
+
+  /// See [OscilloscopeEntity.ip].
+  static final ip =
+      obx.QueryStringProperty<OscilloscopeEntity>(_entities[8].properties[5]);
+
+  /// See [OscilloscopeEntity.port].
+  static final port =
+      obx.QueryIntegerProperty<OscilloscopeEntity>(_entities[8].properties[6]);
+
+  /// See [OscilloscopeEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<OscilloscopeEntity>(_entities[8].properties[7]);
+
+  /// see [OscilloscopeEntity.oscilloscopeMsgEntities]
+  static final oscilloscopeMsgEntities =
+      obx.QueryBacklinkToMany<OscilloscopeMsgEntity, OscilloscopeEntity>(
+          OscilloscopeMsgEntity_.oscilloscopeEntity);
+}
+
+/// [OscilloscopeMsgEntity] entity fields to define ObjectBox queries.
+class OscilloscopeMsgEntity_ {
+  /// See [OscilloscopeMsgEntity.id].
+  static final id = obx.QueryIntegerProperty<OscilloscopeMsgEntity>(
+      _entities[9].properties[0]);
+
+  /// See [OscilloscopeMsgEntity.isDecodeEnabled].
+  static final isDecodeEnabled =
+      obx.QueryBooleanProperty<OscilloscopeMsgEntity>(
+          _entities[9].properties[1]);
+
+  /// See [OscilloscopeMsgEntity.decodeMode].
+  static final decodeMode = obx.QueryIntegerProperty<OscilloscopeMsgEntity>(
+      _entities[9].properties[2]);
+
+  /// See [OscilloscopeMsgEntity.decodeFormat].
+  static final decodeFormat = obx.QueryIntegerProperty<OscilloscopeMsgEntity>(
+      _entities[9].properties[3]);
+
+  /// See [OscilloscopeMsgEntity.createdAt].
+  static final createdAt = obx.QueryDateNanoProperty<OscilloscopeMsgEntity>(
+      _entities[9].properties[4]);
+
+  /// See [OscilloscopeMsgEntity.oscilloscopeEntity].
+  static final oscilloscopeEntity =
+      obx.QueryRelationToOne<OscilloscopeMsgEntity, OscilloscopeEntity>(
+          _entities[9].properties[5]);
+
+  /// See [OscilloscopeMsgEntity.imageFilePath].
+  static final imageFilePath = obx.QueryStringProperty<OscilloscopeMsgEntity>(
+      _entities[9].properties[6]);
+}
+
+/// [SessionEntity] entity fields to define ObjectBox queries.
+class SessionEntity_ {
+  /// See [SessionEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<SessionEntity>(_entities[10].properties[0]);
+
+  /// See [SessionEntity.name].
+  static final name =
+      obx.QueryStringProperty<SessionEntity>(_entities[10].properties[1]);
+
+  /// See [SessionEntity.isRunning].
+  static final isRunning =
+      obx.QueryBooleanProperty<SessionEntity>(_entities[10].properties[2]);
+
+  /// See [SessionEntity.i2c].
+  static final i2c = obx.QueryRelationToOne<SessionEntity, I2cEntity>(
+      _entities[10].properties[3]);
+
+  /// See [SessionEntity.spi].
+  static final spi = obx.QueryRelationToOne<SessionEntity, SpiEntity>(
+      _entities[10].properties[4]);
+
+  /// See [SessionEntity.modbus].
+  static final modbus = obx.QueryRelationToOne<SessionEntity, ModbusEntity>(
+      _entities[10].properties[5]);
+
+  /// See [SessionEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<SessionEntity>(_entities[10].properties[6]);
+
+  /// See [SessionEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<SessionEntity>(_entities[10].properties[7]);
+
+  /// See [SessionEntity.lastUsedAt].
+  static final lastUsedAt =
+      obx.QueryDateNanoProperty<SessionEntity>(_entities[10].properties[8]);
+
+  /// See [SessionEntity.stoppedAt].
+  static final stoppedAt =
+      obx.QueryDateNanoProperty<SessionEntity>(_entities[10].properties[9]);
+
+  /// See [SessionEntity.startedAt].
+  static final startedAt =
+      obx.QueryDateNanoProperty<SessionEntity>(_entities[10].properties[10]);
+
+  /// See [SessionEntity.oscilloscope].
+  static final oscilloscope =
+      obx.QueryRelationToOne<SessionEntity, OscilloscopeEntity>(
+          _entities[10].properties[11]);
+
+  /// see [SessionEntity.logs]
+  static final logs = obx.QueryBacklinkToMany<LogEntity, SessionEntity>(
+      LogEntity_.sessionEntity);
+}
+
+/// [SpiEntity] entity fields to define ObjectBox queries.
+class SpiEntity_ {
+  /// See [SpiEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<SpiEntity>(_entities[11].properties[0]);
+
+  /// See [SpiEntity.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<SpiEntity>(_entities[11].properties[1]);
+
+  /// See [SpiEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<SpiEntity>(_entities[11].properties[2]);
+
+  /// See [SpiEntity.updatedAt].
+  static final updatedAt =
+      obx.QueryDateNanoProperty<SpiEntity>(_entities[11].properties[3]);
+
+  /// see [SpiEntity.spiMsgEntities]
+  static final spiMsgEntities =
+      obx.QueryBacklinkToMany<SpiMsgEntity, SpiEntity>(SpiMsgEntity_.spiEntity);
+}
+
+/// [SpiMsgEntity] entity fields to define ObjectBox queries.
+class SpiMsgEntity_ {
+  /// See [SpiMsgEntity.id].
+  static final id =
+      obx.QueryIntegerProperty<SpiMsgEntity>(_entities[12].properties[0]);
+
+  /// See [SpiMsgEntity.mosi].
+  static final mosi =
+      obx.QueryStringProperty<SpiMsgEntity>(_entities[12].properties[1]);
+
+  /// See [SpiMsgEntity.miso].
+  static final miso =
+      obx.QueryStringProperty<SpiMsgEntity>(_entities[12].properties[2]);
+
+  /// See [SpiMsgEntity.spiEntity].
+  static final spiEntity = obx.QueryRelationToOne<SpiMsgEntity, SpiEntity>(
+      _entities[12].properties[3]);
+
+  /// See [SpiMsgEntity.createdAt].
+  static final createdAt =
+      obx.QueryDateNanoProperty<SpiMsgEntity>(_entities[12].properties[4]);
 }
