@@ -8,28 +8,39 @@ final userRouter =
       ..get('/', (Request req) => Response.ok('Hello, World! Your user router is working!'))
       ..get(
         '/self',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(user.getSelf),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(user.getSelf),
       )
       ..get(
         '/search',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(user.getUsers),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(user.getUsers),
       )
       ..get(
         '/<id>',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(user.getUserById),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(user.getUserById),
       )
-      
       ..post(
         '/',
-        token
-            .verifyAccessByToken(token.VerificationType.accessToken, requireAdmin: true)
-            .call(user.addUser),
+        Pipeline()
+            .addMiddleware(
+              token.verifyAccessByToken(token.VerificationType.accessToken, requireAdmin: true),
+            )
+            .addHandler(user.addUser),
       )
       ..put(
         '/<id>',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(user.editUser),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(user.editUser),
       )
       ..delete(
         '/<id>',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(user.deleteUserById),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(user.deleteUserById),
       );

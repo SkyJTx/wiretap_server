@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:hashlib/hashlib.dart';
 
-import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/dotenv.dart';
 import 'package:wiretap_server/objectbox.g.dart';
@@ -34,10 +33,7 @@ class DatabaseRepo {
 
   void init() async {
     final path = directory.path;
-    await Task.run((path) {
-      openStore(directory: path);
-    }, path);
-    _store = Store.attach(getObjectBoxModel(), path);
+    _store = openStore(directory: path);
     
     final length = _store!.box<UserEntity>().count();
     if (length == 0) {

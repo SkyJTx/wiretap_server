@@ -7,7 +7,7 @@ class LogEntity {
   int id = 0;
 
   @Index()
-  String protocol;
+  String type;
 
   String data;
 
@@ -17,7 +17,7 @@ class LogEntity {
   final sessionEntity = ToOne<SessionEntity>();
 
   LogEntity({
-    required this.protocol,
+    required this.type,
     required this.data,
     required this.createdAt,
   });

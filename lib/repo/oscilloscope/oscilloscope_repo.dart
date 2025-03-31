@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
@@ -8,7 +9,7 @@ import 'package:wiretap_server/repo/oscilloscope/oscilloscope_api_provider.dart'
 
 class OscilloscopeRepo {
   final StreamController<String> _inputController = StreamController<String>.broadcast();
-  final StreamController<dynamic> _outputController = StreamController<dynamic>.broadcast();
+  final StreamController<Uint8List> _outputController = StreamController<Uint8List>.broadcast();
   final StreamController<ErrorBase> _errorController = StreamController<ErrorBase>.broadcast();
   final StreamController<bool> _closeController = StreamController<bool>.broadcast();
   final ReceivePort _errorReceivePort = ReceivePort();
@@ -21,6 +22,8 @@ class OscilloscopeRepo {
   StreamSubscription<dynamic>? _isolateTerminateSubscription;
   bool _isConnected = false;
   bool get isConnected => _isConnected;
+  bool _stale = false;
+  bool get stale => _stale;
 
   final _task = Task((receivePort, sendPort) async {
     final inputController = StreamController<String>.broadcast();
@@ -65,7 +68,7 @@ class OscilloscopeRepo {
     final inputSub = inputController.stream.listen((message) async {
       receiveSub.pause();
       try {
-        sendPort.send(await apiProvider.run(message));
+        sendPort.send(String.fromCharCodes(await apiProvider.run(message)));
       } on ErrorBase catch (e) {
         errorSendPort.send(e.message);
       } catch (e) {
@@ -92,6 +95,9 @@ class OscilloscopeRepo {
   OscilloscopeRepo();
 
   Future<void> connect(String ip, int port) async {
+    if (stale) {
+      throw ErrorType.internalServerError.addMessage('Oscilloscope is already closed.');
+    }
     if (_isConnected) {
       throw ErrorType.internalServerError.addMessage('Isolate is already connected');
     }
@@ -128,28 +134,29 @@ class OscilloscopeRepo {
   }
 
   void sendCommand(String command) async {
+    if (stale) {
+      throw ErrorType.internalServerError.addMessage('Oscilloscope is already closed.');
+    }
     if (!_isConnected) {
       throw ErrorType.internalServerError.addMessage('Isolate is closed');
     }
     _inputController.add(command);
   }
 
-  Future<T> send<T>(
+  Future<Uint8List> send(
     String message, {
-    FutureOr<T> Function(dynamic message)? converter,
+    FutureOr<Uint8List> Function(Uint8List message)? converter,
   }) async {
     if (!_isConnected) {
       throw ErrorType.internalServerError.addMessage('Isolate is closed');
     }
-    final completer = Completer<T>();
+    final completer = Completer<Uint8List>();
     final sub = _outputController.stream.listen((message) async {
       if (converter != null) {
         final convertedMessage = await converter(message);
         completer.complete(convertedMessage);
-      } else if (message is T) {
-        completer.complete(message);
       } else {
-        completer.completeError(ErrorType.internalServerError.addMessage('Invalid message type'));
+        completer.complete(message);
       }
     });
     _inputController.add(message);
@@ -159,6 +166,9 @@ class OscilloscopeRepo {
   }
 
   Future<void> close() async {
+    if (stale) {
+      throw ErrorType.internalServerError.addMessage('Oscilloscope is already closed.');
+    }
     final completelyCloseCompleter = Completer<void>();
     _exitReceivePort.sendPort.send(true);
     final exitSub = _closeController.stream.listen((message) async {
@@ -184,5 +194,6 @@ class OscilloscopeRepo {
     _exitReceivePort.close();
     _isolateTerminateReceivePort.close();
     await _task.stop();
+    _stale = true;
   }
 }

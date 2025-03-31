@@ -242,7 +242,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(6, 7274666047118581762),
       name: 'LogEntity',
-      lastPropertyId: const obx_int.IdUid(5, 2135957247903561130),
+      lastPropertyId: const obx_int.IdUid(6, 594692355368961804),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -250,12 +250,6 @@ final _entities = <obx_int.ModelEntity>[
             name: 'id',
             type: 6,
             flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 7188003485061549627),
-            name: 'protocol',
-            type: 9,
-            flags: 2048,
-            indexId: const obx_int.IdUid(8, 6412613093291266126)),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(3, 4071311000403761281),
             name: 'data',
@@ -272,7 +266,13 @@ final _entities = <obx_int.ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const obx_int.IdUid(9, 988245863220205401),
-            relationTarget: 'SessionEntity')
+            relationTarget: 'SessionEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 594692355368961804),
+            name: 'type',
+            type: 9,
+            flags: 2048,
+            indexId: const obx_int.IdUid(20, 1117724916766667413))
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
@@ -665,12 +665,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
       lastEntityId: const obx_int.IdUid(13, 4307673660729718376),
-      lastIndexId: const obx_int.IdUid(19, 2661140894817801191),
+      lastIndexId: const obx_int.IdUid(20, 1117724916766667413),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
-      retiredIndexUids: const [2661140894817801191],
-      retiredPropertyUids: const [8813169573060757922],
+      retiredIndexUids: const [2661140894817801191, 6412613093291266126],
+      retiredPropertyUids: const [8813169573060757922, 7188003485061549627],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -939,22 +939,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (LogEntity object, fb.Builder fbb) {
-          final protocolOffset = fbb.writeString(object.protocol);
           final dataOffset = fbb.writeString(object.data);
-          fbb.startTable(6);
+          final typeOffset = fbb.writeString(object.type);
+          fbb.startTable(7);
           fbb.addInt64(0, object.id);
-          fbb.addOffset(1, protocolOffset);
           fbb.addOffset(2, dataOffset);
           fbb.addInt64(3, object.createdAt.microsecondsSinceEpoch * 1000);
           fbb.addInt64(4, object.sessionEntity.targetId);
+          fbb.addOffset(5, typeOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
         objectFromFB: (obx.Store store, ByteData fbData) {
           final buffer = fb.BufferContext(fbData);
           final rootOffset = buffer.derefObject(0);
-          final protocolParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
+          final typeParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 14, '');
           final dataParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 8, '');
           final createdAtParam = DateTime.fromMicrosecondsSinceEpoch(
@@ -962,9 +962,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
                       1000)
                   .round());
           final object = LogEntity(
-              protocol: protocolParam,
-              data: dataParam,
-              createdAt: createdAtParam)
+              type: typeParam, data: dataParam, createdAt: createdAtParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
           object.sessionEntity.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
@@ -1539,21 +1537,21 @@ class LogEntity_ {
   static final id =
       obx.QueryIntegerProperty<LogEntity>(_entities[5].properties[0]);
 
-  /// See [LogEntity.protocol].
-  static final protocol =
-      obx.QueryStringProperty<LogEntity>(_entities[5].properties[1]);
-
   /// See [LogEntity.data].
   static final data =
-      obx.QueryStringProperty<LogEntity>(_entities[5].properties[2]);
+      obx.QueryStringProperty<LogEntity>(_entities[5].properties[1]);
 
   /// See [LogEntity.createdAt].
   static final createdAt =
-      obx.QueryDateNanoProperty<LogEntity>(_entities[5].properties[3]);
+      obx.QueryDateNanoProperty<LogEntity>(_entities[5].properties[2]);
 
   /// See [LogEntity.sessionEntity].
   static final sessionEntity = obx.QueryRelationToOne<LogEntity, SessionEntity>(
-      _entities[5].properties[4]);
+      _entities[5].properties[3]);
+
+  /// See [LogEntity.type].
+  static final type =
+      obx.QueryStringProperty<LogEntity>(_entities[5].properties[4]);
 }
 
 /// [ModbusEntity] entity fields to define ObjectBox queries.

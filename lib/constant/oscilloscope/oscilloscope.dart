@@ -215,6 +215,19 @@ enum OscilloscopeDecodeMode {
         return 'SPI';
     }
   }
+
+  static OscilloscopeDecodeMode? tryParse(String protocol) {
+    switch (protocol) {
+      case 'SPI':
+        return OscilloscopeDecodeMode.spi;
+      case 'I2C':
+        return OscilloscopeDecodeMode.i2c;
+      case 'Modbus':
+        return OscilloscopeDecodeMode.uart;
+      default:
+        return null;
+    }
+  }
 }
 
 enum OscilloscopeDecodeFormat {

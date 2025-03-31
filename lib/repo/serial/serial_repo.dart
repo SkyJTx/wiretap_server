@@ -69,9 +69,8 @@ class SerialRepo {
         List<int> l => Uint8List.fromList(l),
         _ => Uint8List.fromList(data.toString().codeUnits),
       };
-      port.write(byte);
       final completer = Completer<Uint8List>();
-      final subscription = reader.stream.listen(
+      final subscription = outputController.stream.listen(
         (Uint8List data) {
           completer.complete(data);
         },
@@ -84,6 +83,7 @@ class SerialRepo {
           }
         },
       );
+      port.write(byte);
       return completer.future.whenComplete(() {
         subscription.cancel();
       });

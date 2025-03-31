@@ -125,9 +125,9 @@ class Task {
   }
 
   Future<void> stop() async {
-    _senderSubscription?.cancel();
-    _receiverSubscription?.cancel();
+    await _senderSubscription?.cancel();
+    await _receiverSubscription?.cancel();
     _mainIsolateceivePort.close();
-    _isolate?.kill();
+    _isolate?.kill(priority: Isolate.immediate);
   }
 }

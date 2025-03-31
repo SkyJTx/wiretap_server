@@ -12,9 +12,13 @@ final authenticationRouter =
       ..post('/login', authen.login)
       ..post(
         '/logout',
-        token.verifyAccessByToken(token.VerificationType.accessToken).call(authen.logout),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
+            .addHandler(authen.logout),
       )
       ..post(
         '/refresh',
-        token.verifyAccessByToken(token.VerificationType.refreshToken).call(authen.refresh),
+        Pipeline()
+            .addMiddleware(token.verifyAccessByToken(token.VerificationType.refreshToken))
+            .addHandler(authen.refresh),
       );

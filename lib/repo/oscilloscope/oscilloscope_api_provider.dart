@@ -18,6 +18,16 @@ class OscilloscopeApiProvider {
     required this.port,
   });
 
+  static FutureOr<T> template<T>(String ip, int port, FutureOr<T> Function(OscilloscopeApiProvider provider) function) async {
+    final oscilloscope = OscilloscopeApiProvider(ip: ip, port: port);
+    await oscilloscope.connect();
+    try {
+      return await function(oscilloscope);
+    } finally {
+      await oscilloscope.disconnect();
+    }
+  }
+
   bool get isConnected {
     return _connectedCompleter.isCompleted;
   }
@@ -179,6 +189,13 @@ class OscilloscopeApiProvider {
     if (level != null) {
       await run(':TRIG:EDGE:LEV $level');
     }
+  }
+
+  void runWithOutReturning(String command) {
+    if (!isConnected) {
+      throw ErrorType.internalServerError.addMessage('Not connected to oscilloscope');
+    }
+    socket.writeln(command);
   }
 
   Future<Uint8List> run(
