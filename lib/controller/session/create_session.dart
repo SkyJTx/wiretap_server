@@ -12,7 +12,7 @@ Future<Response> createSession(Request req) async {
   late final String sessionName;
   try {
     final body = await req.readAsString();
-    sessionName = jsonDecode(body)['sessionName'] as String;
+    sessionName = jsonDecode(body)['name'] as String;
   } catch (e) {
     return ErrorType.badRequest.toResponse('Invalid request body');
   }

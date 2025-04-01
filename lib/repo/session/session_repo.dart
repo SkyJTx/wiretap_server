@@ -70,7 +70,7 @@ class SessionRepo {
 
   static const timeout = Duration(seconds: 10);
   static String oscilloscopeMsgFilePath(int sessionId) => 'public/oscilloscope/$sessionId';
-  void keepAliveFunction(Timer timer) async {
+  void keepAliveFunction() async {
     if (_isPolling) {
       _keepAlive?.cancel();
       final now = DateTime.now().toUtc();
@@ -176,7 +176,7 @@ class SessionRepo {
         Data(
           message: 'SPI',
           data: SpiMsg.fromEntity(msg!.spiMsgEntities.sortedBy((e) => e.createdAt).last).toMap(),
-        ).toMap(),
+        ).toJson(),
       );
     }
     if (data.type == 'I2C' && session.i2c.target?.isEnabled == true) {
@@ -234,7 +234,7 @@ class SessionRepo {
         Data(
           message: 'I2C',
           data: I2cMsg.fromEntity(msg!.i2cMsgEntities.sortedBy((e) => e.createdAt).last).toMap(),
-        ).toMap(),
+        ).toJson(),
       );
     }
     if (data.type == 'Modbus' && session.modbus.target?.isEnabled == true) {
@@ -314,14 +314,12 @@ class SessionRepo {
               ModbusMsg.fromEntity(
                 msg!.modbusMsgEntities.sortedBy((e) => e.createdAt).last,
               ).toMap(),
-        ).toMap(),
+        ).toJson(),
       );
     }
     if (data.type == 'Keep Alive' && data.data == 'Pong') {
       _keepAlive?.cancel();
-      _keepAlive = Timer(SessionRepo.timeout, () {
-        stopPolling();
-      });
+      _keepAlive = Timer(SessionRepo.timeout, keepAliveFunction);
     }
 
     session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
@@ -344,7 +342,7 @@ class SessionRepo {
       Data(
         message: 'Serial',
         data: Log.fromEntity(session.logs.sortedBy((e) => e.createdAt).last).toMap(),
-      ).toMap(),
+      ).toJson(),
     );
 
     if (session.oscilloscope.target?.isEnabled == true) {
@@ -422,7 +420,7 @@ class SessionRepo {
           createdAt: resultOscilloscopeMsgEntity.createdAt,
         ).toMap();
       });
-      wsRepo.sendMessageToAll(Data(message: 'Oscilloscope', data: result).toMap());
+      wsRepo.sendMessageToAll(Data(message: 'Oscilloscope', data: result).toJson());
     }
   }
 
@@ -587,9 +585,7 @@ class SessionRepo {
       return sessionBox.get(id);
     }, [sessionId]);
 
-    _keepAlive = Timer(SessionRepo.timeout, () {
-      stopPolling();
-    });
+    _keepAlive = Timer(SessionRepo.timeout, keepAliveFunction);
 
     if (newSession == null) {
       throw ErrorType.internalServerError.addMessage('Failed to create session');
@@ -602,6 +598,7 @@ class SessionRepo {
     if (!_isPolling) {
       throw ErrorType.internalServerError.addMessage('No session');
     }
+    await wsRepo.removeAllWebSocket();
     _exitReceivePort!.sendPort.send(true);
     await _isolateTerminationCompleter!.future;
     _keepAlive?.cancel();

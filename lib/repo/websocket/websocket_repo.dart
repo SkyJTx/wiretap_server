@@ -73,13 +73,20 @@ class WebsocketRepo {
     websocket.add(controller);
   }
 
-  void removeWebSocket(WebSocketChannel webSocket) {
+  Future<void> removeWebSocket(WebSocketChannel webSocket) async {
     for (var controller in websocket) {
       if (controller.webSocket == webSocket) {
-        controller.close();
+        await controller.close();
         break;
       }
     }
+  }
+
+  Future<void> removeAllWebSocket() async {
+    for (var controller in websocket) {
+      await controller.close();
+    }
+    websocket.clear();
   }
 
   void sendMessageToAll(dynamic message) {

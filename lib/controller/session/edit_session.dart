@@ -15,15 +15,15 @@ Future<Response> editSession(Request req) async {
     return ErrorType.badRequest.toResponse('Session ID is required');
   }
 
-  late String? name;
-  late bool? enableI2c;
-  late bool? enableSpi;
-  late bool? enableModbus;
-  late bool? enableOscilloscope;
-  late String? ip;
-  late int? port;
-  late int? activeDecodeMode;
-  late int? activeDecodeFormat;
+  String? name;
+  bool? enableI2c;
+  bool? enableSpi;
+  bool? enableModbus;
+  bool? enableOscilloscope;
+  String? ip;
+  int? port;
+  int? activeDecodeMode;
+  int? activeDecodeFormat;
   try {
     final body = await req.readAsString();
     final data = jsonDecode(body) as Map<String, dynamic>;

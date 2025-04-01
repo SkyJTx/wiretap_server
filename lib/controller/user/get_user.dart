@@ -17,7 +17,7 @@ Future<Response> getSelf(Request req) async {
   }
 
   return Response.ok(
-    Data(message: 'User found', data: User.fromEntity(user).toMap()).toJson(),
+    Data(message: 'User found', data: UserSafe.fromEntity(user).toMap()).toJson(),
     headers: jsonHeader,
   );
 }
@@ -46,7 +46,6 @@ Future<Response> getUserById(Request req) async {
 }
 
 Future<Response> getUsers(Request req) async {
-  print('getUsers');
   late final int userPerPage;
   late final int page;
   String? searchParam;
