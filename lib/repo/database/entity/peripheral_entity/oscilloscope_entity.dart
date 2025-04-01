@@ -1,6 +1,5 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:wiretap_server/constant/oscilloscope/oscilloscope.dart';
-import 'package:wiretap_server/data_model/session/oscilloscope_capture.dart';
 import 'package:wiretap_server/repo/database/entity/message_entity/oscilloscope_msg_entity.dart';
 
 @Entity()

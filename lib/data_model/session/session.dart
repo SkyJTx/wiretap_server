@@ -6,7 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:wiretap_server/data_model/session/i2c.dart';
 import 'package:wiretap_server/data_model/session/log.dart';
 import 'package:wiretap_server/data_model/session/modbus.dart';
-import 'package:wiretap_server/data_model/session/oscilloscope_capture.dart';
+import 'package:wiretap_server/data_model/session/oscilloscope.dart';
 import 'package:wiretap_server/data_model/session/spi.dart';
 import 'package:wiretap_server/repo/database/entity/session_entity/session_entity.dart';
 

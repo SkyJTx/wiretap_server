@@ -1,4 +1,5 @@
 import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
 import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
@@ -7,7 +8,7 @@ import 'package:wiretap_server/repo/database/entity/session_entity/session_entit
 import 'package:wiretap_server/repo/session/session_repo.dart';
 
 Future<Response> getSessionById(Request req) async {
-  final sessionId = int.tryParse(req.url.queryParameters['sessionId'] ?? '');
+  final sessionId = int.tryParse(req.params['id'] ?? '');
   if (sessionId == null) {
     return ErrorType.badRequest.toResponse('Session ID is required');
   }
@@ -33,7 +34,7 @@ Future<Response> getSessionById(Request req) async {
 }
 
 Future<Response> getSessionByName(Request req) async {
-  final sessionName = req.url.queryParameters['sessionName'];
+  final sessionName = req.params['id'];
   if (sessionName == null || sessionName.isEmpty) {
     return ErrorType.badRequest.toResponse('Session name is required');
   }
@@ -68,9 +69,6 @@ Future<Response> getSessions(Request req) async {
   }
   if (limit < 1) {
     return ErrorType.badRequest.toResponse('Session per page must be greater than 0');
-  }
-  if (searchParam != null && searchParam.isEmpty) {
-    return ErrorType.badRequest.toResponse('Search parameter cannot be empty');
   }
 
   late final List<SessionEntity> sessionEntities;

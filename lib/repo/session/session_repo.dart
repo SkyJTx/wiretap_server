@@ -8,7 +8,7 @@ import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/data_model/serial/serial_data.dart';
-import 'package:wiretap_server/data_model/session/oscilloscope_capture.dart';
+import 'package:wiretap_server/data_model/session/oscilloscope.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/database_repo.dart';
 import 'package:wiretap_server/repo/database/entity/message_entity/i2c_msg_entity.dart';
@@ -229,7 +229,7 @@ class SessionRepo {
     }
   }
 
-  Future<void> startPolling({String? serialPortName, required SessionEntity session}) async {
+  Future<SessionEntity> startPolling({String? serialPortName, required SessionEntity session}) async {
     if (_isPolling) {
       throw ErrorType.internalServerError.addMessage('Session already exist');
     }
@@ -370,7 +370,7 @@ class SessionRepo {
       );
     }
 
-    await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+    final newSession = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
       if (session == null) {
@@ -380,15 +380,22 @@ class SessionRepo {
       session.startedAt = DateTime.now().toUtc();
       session.lastUsedAt = DateTime.now().toUtc();
       session.updatedAt = DateTime.now().toUtc();
-      sessionBox.put(session);
+      final id = sessionBox.put(session);
+      return sessionBox.get(id);
     }, [sessionId]);
 
     _keepAlive = Timer(SessionRepo.timeout, () {
       stopPolling();
     });
+
+    if (newSession == null) {
+      throw ErrorType.internalServerError.addMessage('Failed to create session');
+    }
+
+    return newSession;
   }
 
-  Future<void> stopPolling() async {
+  Future<SessionEntity> stopPolling() async {
     if (!_isPolling) {
       throw ErrorType.internalServerError.addMessage('No session');
     }
@@ -426,7 +433,7 @@ class SessionRepo {
     _sessionId = null;
     _keepAlive = null;
 
-    await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+    final session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
       if (session == null) {
@@ -435,10 +442,17 @@ class SessionRepo {
       session.isRunning = false;
       session.stoppedAt = DateTime.now().toUtc();
       session.updatedAt = DateTime.now().toUtc();
-      sessionBox.put(session);
+      final id = sessionBox.put(session);
+      return sessionBox.get(id);
     }, [sessionId]);
 
     _isPolling = false;
+
+    if (session == null) {
+      throw ErrorType.internalServerError.addMessage('Failed to stop session');
+    }
+
+    return session;
   }
 
   Future<SessionEntity> createSession(String name) async {
@@ -536,6 +550,88 @@ class SessionRepo {
       query.limit = sessionPerPage;
       return query.find();
     }, [sessionPerPage, page, searchParam]);
+  }
+
+  Future<List<SpiMsgEntity>> getAllSpiMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final spiMsgs = session.spi.target?.spiMsgEntities.sortedBy((e) => e.createdAt);
+      if (spiMsgs == null) {
+        throw ErrorType.badRequest.addMessage('No SPI messages found');
+      }
+      return spiMsgs;
+    }, [sessionId]);
+  }
+
+  Future<List<I2cMsgEntity>> getAllI2cMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final i2cMsgs = session.i2c.target?.i2cMsgEntities.sortedBy((e) => e.createdAt);
+      if (i2cMsgs == null) {
+        throw ErrorType.badRequest.addMessage('No I2C messages found');
+      }
+      return i2cMsgs;
+    }, [sessionId]);
+  }
+
+  Future<List<ModbusMsgEntity>> getAllModbusMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final modbusMsgs = session.modbus.target?.modbusMsgEntities.sortedBy((e) => e.createdAt);
+      if (modbusMsgs == null) {
+        throw ErrorType.badRequest.addMessage('No Modbus messages found');
+      }
+      return modbusMsgs;
+    }, [sessionId]);
+  }
+
+  Future<List<OscilloscopeMsgEntity>> getAllOscilloscopeMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final oscilloscopeMsgs = session.oscilloscope.target?.oscilloscopeMsgEntities.sortedBy(
+        (e) => e.createdAt,
+      );
+      if (oscilloscopeMsgs == null) {
+        throw ErrorType.badRequest.addMessage('No Oscilloscope messages found');
+      }
+      return oscilloscopeMsgs;
+    }, [sessionId]);
+  }
+
+  Future<List<LogEntity>> getAllLog(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final logs = session.logs.sortedBy((e) => e.createdAt);
+      if (logs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No logs found');
+      }
+      return logs;
+    }, [sessionId]);
   }
 
   Future<SpiMsgEntity> getLatestSpiMsg(int sessionId) async {

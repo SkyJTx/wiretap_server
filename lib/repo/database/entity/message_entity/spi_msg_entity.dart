@@ -20,4 +20,6 @@ class SpiMsgEntity {
     required this.miso,
     required this.createdAt,
   });
+
+  toMap() {}
 }
