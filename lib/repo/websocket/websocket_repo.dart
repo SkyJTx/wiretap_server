@@ -45,6 +45,7 @@ class WebSocketController {
   }
 
   Future<void> close() async {
+    WebsocketRepo().websocket.remove(this);
     await Future.wait<void>([
       if (_inputSubscription != null) _inputSubscription!.cancel(),
       if (_outputSubscription != null)  _outputSubscription!.cancel(),

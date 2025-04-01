@@ -6,9 +6,14 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
+import 'package:wiretap_server/data_model/data.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/data_model/serial/serial_data.dart';
+import 'package:wiretap_server/data_model/session/i2c.dart';
+import 'package:wiretap_server/data_model/session/log.dart';
+import 'package:wiretap_server/data_model/session/modbus.dart';
 import 'package:wiretap_server/data_model/session/oscilloscope.dart';
+import 'package:wiretap_server/data_model/session/spi.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/database_repo.dart';
 import 'package:wiretap_server/repo/database/entity/message_entity/i2c_msg_entity.dart';
@@ -21,6 +26,7 @@ import 'package:wiretap_server/repo/database/entity/peripheral_entity/oscillosco
 import 'package:wiretap_server/repo/database/entity/peripheral_entity/spi_entity.dart';
 import 'package:wiretap_server/repo/database/entity/session_entity/log_entity.dart';
 import 'package:wiretap_server/repo/database/entity/session_entity/session_entity.dart';
+import 'package:wiretap_server/repo/notification/mail_repo.dart';
 import 'package:wiretap_server/repo/oscilloscope/oscilloscope_api_provider.dart';
 import 'package:wiretap_server/repo/serial/serial_repo.dart';
 import 'package:wiretap_server/repo/websocket/websocket_repo.dart';
@@ -64,6 +70,19 @@ class SessionRepo {
 
   static const timeout = Duration(seconds: 10);
   static String oscilloscopeMsgFilePath(int sessionId) => 'public/oscilloscope/$sessionId';
+  void keepAliveFunction(Timer timer) async {
+    if (_isPolling) {
+      _keepAlive?.cancel();
+      final now = DateTime.now().toUtc();
+      MailRepo().sendMail(
+        MailRepo().createMessage(
+          'WireTap Error Notification',
+          'Serial port is not responding at ${now.year}/${now.month}/${now.day} ${now.hour}:${now.minute}:${now.second} (UTC+0). Please check the WireTap Notifier.',
+        ),
+      );
+      await stopPolling();
+    }
+  }
 
   ReceivePort? _errorSendPort;
   ReceivePort? _exitReceivePort;
@@ -129,7 +148,7 @@ class SessionRepo {
       final mosi = splittedData[0];
       final miso = splittedData[1];
 
-      await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+      final msg = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
         final [mosi as String, miso as String, sessionId as int] = params;
         final sessionBox = store.box<SessionEntity>();
         final spiBox = store.box<SpiEntity>();
@@ -150,8 +169,15 @@ class SessionRepo {
           createdAt: DateTime.now().toUtc(),
         );
         spiEntity.spiMsgEntities.add(spiMsgEntity);
-        spiBox.put(spiEntity);
+        final id = spiBox.put(spiEntity);
+        return spiBox.get(id);
       }, [mosi, miso, sessionId]);
+      wsRepo.sendMessageToAll(
+        Data(
+          message: 'SPI',
+          data: SpiMsg.fromEntity(msg!.spiMsgEntities.sortedBy((e) => e.createdAt).last).toMap(),
+        ).toMap(),
+      );
     }
     if (data.type == 'I2C' && session.i2c.target?.isEnabled == true) {
       final isWriteMode = data.data[8] == '0';
@@ -172,7 +198,7 @@ class SessionRepo {
 
       final address = int.parse(stringAddr, radix: 2);
 
-      await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+      final msg = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
         final [
           address as int,
           isTenBitAddressing as bool,
@@ -201,8 +227,15 @@ class SessionRepo {
           createdAt: DateTime.now().toUtc(),
         );
         i2cEntity.i2cMsgEntities.add(i2cMsgEntity);
-        i2cBox.put(i2cEntity);
+        final id = i2cBox.put(i2cEntity);
+        return i2cBox.get(id);
       }, [address, isTenBit, isWriteMode, realData, sessionId]);
+      wsRepo.sendMessageToAll(
+        Data(
+          message: 'I2C',
+          data: I2cMsg.fromEntity(msg!.i2cMsgEntities.sortedBy((e) => e.createdAt).last).toMap(),
+        ).toMap(),
+      );
     }
     if (data.type == 'Modbus' && session.modbus.target?.isEnabled == true) {
       final splittedData = data.data.split(';');
@@ -220,7 +253,7 @@ class SessionRepo {
         radix: 2,
       );
 
-      await DatabaseRepo().store.runInTransactionAsync(
+      final msg = await DatabaseRepo().store.runInTransactionAsync(
         TxMode.write,
         (store, params) {
           final [
@@ -259,7 +292,8 @@ class SessionRepo {
             createdAt: DateTime.now().toUtc(),
           );
           modbusEntity.modbusMsgEntities.add(modbusMsgEntity);
-          modbusBox.put(modbusEntity);
+          final id = modbusBox.put(modbusEntity);
+          return modbusBox.get(id);
         },
         [
           address,
@@ -272,6 +306,15 @@ class SessionRepo {
           responseCRC,
           sessionId,
         ],
+      );
+      wsRepo.sendMessageToAll(
+        Data(
+          message: 'Modbus',
+          data:
+              ModbusMsg.fromEntity(
+                msg!.modbusMsgEntities.sortedBy((e) => e.createdAt).last,
+              ).toMap(),
+        ).toMap(),
       );
     }
     if (data.type == 'Keep Alive' && data.data == 'Pong') {
@@ -297,6 +340,12 @@ class SessionRepo {
       session.logs.add(logEntity);
       return sessionBox.get(sessionBox.put(session))!;
     }, [jsonString, sessionId]);
+    wsRepo.sendMessageToAll(
+      Data(
+        message: 'Serial',
+        data: Log.fromEntity(session.logs.sortedBy((e) => e.createdAt).last).toMap(),
+      ).toMap(),
+    );
 
     if (session.oscilloscope.target?.isEnabled == true) {
       final result = await DatabaseRepo().store.runInTransaction(TxMode.write, () async {
@@ -371,9 +420,9 @@ class SessionRepo {
           decodeFormat: type != null ? OscilloscopeDecodeFormat.hex.name : null,
           imageFilePath: resultOscilloscopeMsgEntity.imageFilePath,
           createdAt: resultOscilloscopeMsgEntity.createdAt,
-        );
+        ).toMap();
       });
-      wsRepo.sendMessageToAll(result.toMap());
+      wsRepo.sendMessageToAll(Data(message: 'Oscilloscope', data: result).toMap());
     }
   }
 

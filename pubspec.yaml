@@ -13,6 +13,7 @@ dependencies:
   equatable: ^2.0.7
   hashlib: ^1.21.2
   libserialport: ^0.3.0+1
+  mailer: ^6.4.1
   objectbox: ^4.1.0
   shelf: ^1.4.2
   shelf_router: ^1.1.4
