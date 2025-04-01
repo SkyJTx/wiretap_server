@@ -110,6 +110,7 @@ class SessionRepo {
   final wsRepo = WebsocketRepo.createInstance();
 
   Future<void> _handleSerialData(String jsonString) async {
+    if (!_isPolling) return;
     final data = SerialData.fromJson(jsonString);
     SessionEntity session = await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (
       store,
@@ -123,9 +124,156 @@ class SessionRepo {
       return session;
     }, sessionId);
 
-    if (data.type == 'SPI' && session.spi.target?.isEnabled == true) {}
-    if (data.type == 'I2C' && session.i2c.target?.isEnabled == true) {}
-    if (data.type == 'Modbus' && session.modbus.target?.isEnabled == true) {}
+    if (data.type == 'SPI' && session.spi.target?.isEnabled == true) {
+      final splittedData = data.data.split(';');
+      final mosi = splittedData[0];
+      final miso = splittedData[1];
+
+      await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+        final [mosi as String, miso as String, sessionId as int] = params;
+        final sessionBox = store.box<SessionEntity>();
+        final spiBox = store.box<SpiEntity>();
+
+        final session = sessionBox.get(sessionId);
+        if (session == null) {
+          throw ErrorType.internalServerError.addMessage('Session not found');
+        }
+
+        final spiEntity = session.spi.target;
+        if (spiEntity == null) {
+          throw ErrorType.internalServerError.addMessage('Session is invalid state');
+        }
+
+        final spiMsgEntity = SpiMsgEntity(
+          mosi: mosi,
+          miso: miso,
+          createdAt: DateTime.now().toUtc(),
+        );
+        spiEntity.spiMsgEntities.add(spiMsgEntity);
+        spiBox.put(spiEntity);
+      }, [mosi, miso, sessionId]);
+    }
+    if (data.type == 'I2C' && session.i2c.target?.isEnabled == true) {
+      final isWriteMode = data.data[8] == '0';
+      final isTenBit = data.data.substring(1, 6) == '11110';
+      late final String stringAddr;
+      late final String realData;
+      if (isTenBit) {
+        stringAddr = data.data.substring(6, 8) + data.data.substring(10, 18);
+        final rawData = data.data.substring(19);
+        final skipBits = [for (int i = 0; i < rawData.length; i += 9) rawData.substring(i, i + 8)];
+        realData = skipBits.join('');
+      } else {
+        stringAddr = data.data.substring(1, 8);
+        final rawData = data.data.substring(10);
+        final skipBits = [for (int i = 0; i < rawData.length; i += 9) rawData.substring(i, i + 8)];
+        realData = skipBits.join('');
+      }
+
+      final address = int.parse(stringAddr, radix: 2);
+
+      await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+        final [
+          address as int,
+          isTenBitAddressing as bool,
+          isWriteMode as bool,
+          data as String,
+          sessionId as int,
+        ] = params;
+        final sessionBox = store.box<SessionEntity>();
+        final i2cBox = store.box<I2cEntity>();
+
+        final session = sessionBox.get(sessionId);
+        if (session == null) {
+          throw ErrorType.internalServerError.addMessage('Session not found');
+        }
+
+        final i2cEntity = session.i2c.target;
+        if (i2cEntity == null) {
+          throw ErrorType.internalServerError.addMessage('Session is invalid state');
+        }
+
+        final i2cMsgEntity = I2cMsgEntity(
+          address: address,
+          isTenBitAddressing: isTenBitAddressing,
+          isWriteMode: isWriteMode,
+          data: data,
+          createdAt: DateTime.now().toUtc(),
+        );
+        i2cEntity.i2cMsgEntities.add(i2cMsgEntity);
+        i2cBox.put(i2cEntity);
+      }, [address, isTenBit, isWriteMode, realData, sessionId]);
+    }
+    if (data.type == 'Modbus' && session.modbus.target?.isEnabled == true) {
+      final splittedData = data.data.split(';');
+      final tx = splittedData[0];
+      final rx = splittedData[1];
+      final address = int.parse(tx.substring(0, 8), radix: 2);
+      final functionCode = int.parse(tx.substring(8, 16), radix: 2);
+      final startingAddress = int.parse(tx.substring(16, 32), radix: 2);
+      final quantityOfRegisters = int.parse(tx.substring(32, 48), radix: 2);
+      final queryCRC = int.parse(tx.substring(48, 64).split('').reversed.join(''), radix: 2);
+      final byteCount = int.parse(rx.substring(16, 24), radix: 2);
+      final realData = rx.substring(24, 24 + (byteCount * 8));
+      final responseCRC = int.parse(
+        rx.substring(24 + (byteCount * 8), 24 + (byteCount * 8) + 16).split('').reversed.join(''),
+        radix: 2,
+      );
+
+      await DatabaseRepo().store.runInTransactionAsync(
+        TxMode.write,
+        (store, params) {
+          final [
+            address as int,
+            functionCode as int,
+            startingAddress as int,
+            quantityOfRegisters as int,
+            dataLength as int,
+            data as String,
+            queryCRC as int,
+            responseCRC as int,
+            sessionId as int,
+          ] = params;
+          final sessionBox = store.box<SessionEntity>();
+          final modbusBox = store.box<ModbusEntity>();
+
+          final session = sessionBox.get(sessionId);
+          if (session == null) {
+            throw ErrorType.internalServerError.addMessage('Session not found');
+          }
+
+          final modbusEntity = session.modbus.target;
+          if (modbusEntity == null) {
+            throw ErrorType.internalServerError.addMessage('Session is invalid state');
+          }
+
+          final modbusMsgEntity = ModbusMsgEntity(
+            address: address,
+            functionCode: functionCode,
+            startingAddress: startingAddress,
+            quantity: quantityOfRegisters,
+            dataLength: dataLength,
+            data: data,
+            queryCRC: queryCRC,
+            responseCRC: responseCRC,
+            createdAt: DateTime.now().toUtc(),
+          );
+          modbusEntity.modbusMsgEntities.add(modbusMsgEntity);
+          modbusBox.put(modbusEntity);
+        },
+        [
+          address,
+          functionCode,
+          startingAddress,
+          quantityOfRegisters,
+          byteCount,
+          realData,
+          queryCRC,
+          responseCRC,
+          sessionId,
+        ],
+      );
+    }
     if (data.type == 'Keep Alive' && data.data == 'Pong') {
       _keepAlive?.cancel();
       _keepAlive = Timer(SessionRepo.timeout, () {
@@ -229,7 +377,10 @@ class SessionRepo {
     }
   }
 
-  Future<SessionEntity> startPolling({String? serialPortName, required SessionEntity session}) async {
+  Future<SessionEntity> startPolling({
+    String? serialPortName,
+    required SessionEntity session,
+  }) async {
     if (_isPolling) {
       throw ErrorType.internalServerError.addMessage('Session already exist');
     }
@@ -370,7 +521,10 @@ class SessionRepo {
       );
     }
 
-    final newSession = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+    final newSession = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (
+      store,
+      params,
+    ) {
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
       if (session == null) {
@@ -751,6 +905,19 @@ class SessionRepo {
         if (session == null) {
           throw ErrorType.badRequest.addMessage('Session not found');
         }
+        if ([enableI2c, enableSpi, enableModbus].where((e) => e == true).length > 1) {
+          throw ErrorType.badRequest.addMessage('Only one peripheral can be enabled at a time');
+        }
+        if (enableI2c == true) {
+          session.spi.target?.isEnabled = false;
+          session.modbus.target?.isEnabled = false;
+        } else if (enableSpi == true) {
+          session.i2c.target?.isEnabled = false;
+          session.modbus.target?.isEnabled = false;
+        } else if (enableModbus == true) {
+          session.i2c.target?.isEnabled = false;
+          session.spi.target?.isEnabled = false;
+        }
         if (enableI2c != null) {
           session.i2c.target?.isEnabled = enableI2c;
         }
@@ -804,6 +971,23 @@ class SessionRepo {
     }
 
     if (session.id == sessionId) {
+      if (enableI2c == true) {
+        _serialPolling?.send({
+          'command': SerialData(type: 'I2C', data: 'Enable').toJson(),
+          'target': 'serial',
+        });
+      } else if (enableSpi == true) {
+        _serialPolling?.send({
+          'command': SerialData(type: 'SPI', data: 'Enable').toJson(),
+          'target': 'serial',
+        });
+      } else if (enableModbus == true) {
+        _serialPolling?.send({
+          'command': SerialData(type: 'Modbus', data: 'Enable').toJson(),
+          'target': 'serial',
+        });
+      }
+
       final isEnabled = session.oscilloscope.target!.isEnabled;
       final isAppropriate = session.oscilloscope.target!.appropriate;
       if (isEnabled && isAppropriate) {
