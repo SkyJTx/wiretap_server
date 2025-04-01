@@ -1,5 +1,6 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:wiretap_server/constant/oscilloscope/oscilloscope.dart';
+import 'package:wiretap_server/data_model/session/oscilloscope_capture.dart';
 import 'package:wiretap_server/repo/database/entity/message_entity/oscilloscope_msg_entity.dart';
 
 @Entity()
@@ -16,6 +17,18 @@ class OscilloscopeEntity {
   int? activeDecodeMode;
 
   int? activeDecodeFormat;
+
+  @Transient()
+  OscilloscopeDecodeMode? get activeDecodeModeEnum {
+    if (activeDecodeMode == null) return null;
+    return OscilloscopeDecodeMode.values[activeDecodeMode!];
+  }
+
+  @Transient()
+  OscilloscopeDecodeFormat? get activeDecodeFormatEnum {
+    if (activeDecodeFormat == null) return null;
+    return OscilloscopeDecodeFormat.values[activeDecodeFormat!];
+  }
 
   @Transient()
   bool get appropriate {

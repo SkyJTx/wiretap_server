@@ -24,6 +24,10 @@ String setModeCommand(Mode mode) {
   return ':${mode.string}';
 }
 
+String setOscilloscopeModeCommand(Mode mode) {
+  return ':${mode.string}';
+}
+
 String setChannelStateCommand(Channel channel, bool state) {
   return ':CHAN${channel.number}:DISP ${state.stringSwitch}';
 }

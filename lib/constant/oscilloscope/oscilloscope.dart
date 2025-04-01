@@ -106,7 +106,8 @@ enum ChannelEnum {
 enum Mode {
   RUN,
   STOP,
-  SINGLE;
+  SINGLE,
+  CLEAR;
 
   String get string {
     switch (this) {
@@ -116,6 +117,8 @@ enum Mode {
         return 'STOP';
       case Mode.SINGLE:
         return 'SING';
+      case Mode.CLEAR:
+        return 'CLE';
     }
   }
 }
@@ -224,8 +227,27 @@ enum OscilloscopeDecodeMode {
         return OscilloscopeDecodeMode.i2c;
       case 'Modbus':
         return OscilloscopeDecodeMode.uart;
+      case 'PAR':
+        return OscilloscopeDecodeMode.parallel;
+      case 'UART':
+        return OscilloscopeDecodeMode.uart;
+      case 'IIC':
+        return OscilloscopeDecodeMode.i2c;
       default:
         return null;
+    }
+  }
+
+  String convertToWireTapSessionEntity() {
+    switch (this) {
+      case OscilloscopeDecodeMode.parallel:
+        return 'PAR';
+      case OscilloscopeDecodeMode.uart:
+        return 'Modbus';
+      case OscilloscopeDecodeMode.i2c:
+        return 'I2C';
+      case OscilloscopeDecodeMode.spi:
+        return 'SPI';
     }
   }
 }
@@ -249,6 +271,23 @@ enum OscilloscopeDecodeFormat {
         return 'BIN';
       case OscilloscopeDecodeFormat.line:
         return 'LINE';
+    }
+  }
+
+  static OscilloscopeDecodeFormat? tryParse(String protocol) {
+    switch (protocol) {
+      case 'HEX':
+        return OscilloscopeDecodeFormat.hex;
+      case 'ASC':
+        return OscilloscopeDecodeFormat.ascii;
+      case 'DEC':
+        return OscilloscopeDecodeFormat.dec;
+      case 'BIN':
+        return OscilloscopeDecodeFormat.bin;
+      case 'LINE':
+        return OscilloscopeDecodeFormat.line;
+      default:
+        return null;
     }
   }
 }

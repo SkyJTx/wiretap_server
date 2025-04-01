@@ -3,11 +3,12 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/error_base.dart';
 import 'package:wiretap_server/data_model/serial/serial_data.dart';
-import 'package:wiretap_server/data_model/websocket/oscilloscope_capture.dart';
+import 'package:wiretap_server/data_model/session/oscilloscope_capture.dart';
 import 'package:wiretap_server/objectbox.g.dart';
 import 'package:wiretap_server/repo/database/database_repo.dart';
 import 'package:wiretap_server/repo/database/entity/message_entity/i2c_msg_entity.dart';
@@ -62,7 +63,7 @@ class SessionRepo {
   }
 
   static const timeout = Duration(seconds: 10);
-  static String oscilloscopeCaptureFilePath(int sessionId) => 'public/oscilloscope/$sessionId';
+  static String oscilloscopeMsgFilePath(int sessionId) => 'public/oscilloscope/$sessionId';
 
   ReceivePort? _errorSendPort;
   ReceivePort? _exitReceivePort;
@@ -110,9 +111,21 @@ class SessionRepo {
 
   Future<void> _handleSerialData(String jsonString) async {
     final data = SerialData.fromJson(jsonString);
-    if (data.type == 'SPI') {}
-    if (data.type == 'I2C') {}
-    if (data.type == 'Modbus') {}
+    SessionEntity session = await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (
+      store,
+      params,
+    ) {
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(params);
+      if (session == null) {
+        throw ErrorType.internalServerError.addMessage('Session not found');
+      }
+      return session;
+    }, sessionId);
+
+    if (data.type == 'SPI' && session.spi.target?.isEnabled == true) {}
+    if (data.type == 'I2C' && session.i2c.target?.isEnabled == true) {}
+    if (data.type == 'Modbus' && session.modbus.target?.isEnabled == true) {}
     if (data.type == 'Keep Alive' && data.data == 'Pong') {
       _keepAlive?.cancel();
       _keepAlive = Timer(SessionRepo.timeout, () {
@@ -120,7 +133,7 @@ class SessionRepo {
       });
     }
 
-    await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+    session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
       final [jsonString as String, sessionId as int] = params;
       final data = SerialData.fromJson(jsonString);
       final logEntity = LogEntity(
@@ -134,17 +147,9 @@ class SessionRepo {
         throw ErrorType.internalServerError.addMessage('Session not found');
       }
       session.logs.add(logEntity);
-      sessionBox.put(session);
+      return sessionBox.get(sessionBox.put(session))!;
     }, [jsonString, sessionId]);
 
-    final session = await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
-      final sessionBox = store.box<SessionEntity>();
-      final session = sessionBox.get(params);
-      if (session == null) {
-        throw ErrorType.internalServerError.addMessage('Session not found');
-      }
-      return session;
-    }, sessionId);
     if (session.oscilloscope.target?.isEnabled == true) {
       final result = await DatabaseRepo().store.runInTransaction(TxMode.write, () async {
         final store = DatabaseRepo().store;
@@ -196,30 +201,24 @@ class SessionRepo {
         final port = oscilloscopeEntity.port!;
         final oscilloscopeApiProvider = OscilloscopeApiProvider(ip: ip, port: port);
         await oscilloscopeApiProvider.connect();
-        if (type != null) {
-          oscilloscopeApiProvider.runWithOutReturning(
-            setDecodeModeCommand(OscilloscopeDecoder.one, type),
-          );
-          oscilloscopeApiProvider.runWithOutReturning(
-            setDecodeFormatCommand(OscilloscopeDecoder.one, OscilloscopeDecodeFormat.hex),
-          );
-          await Future.delayed(Duration(milliseconds: 500));
-        }
-
         final picture = await oscilloscopeApiProvider.capture();
         final path =
-            '${SessionRepo.oscilloscopeCaptureFilePath(newSession!.id)}/${realOscilloscopeMsgEntity.id}.png';
+            '${SessionRepo.oscilloscopeMsgFilePath(newSession!.id)}/${realOscilloscopeMsgEntity.id}.png';
         final file = File(path);
         await file.create(recursive: true);
         await file.writeAsBytes(picture);
+
         realOscilloscopeMsgEntity.imageFilePath = path;
         final id = oscilloscopeMsgEntityBox.put(realOscilloscopeMsgEntity);
+
+        oscilloscopeApiProvider.runWithOutReturning(setOscilloscopeModeCommand(Mode.CLEAR));
+        oscilloscopeApiProvider.runWithOutReturning(setOscilloscopeModeCommand(Mode.SINGLE));
         await oscilloscopeApiProvider.disconnect();
-        final resultSession = sessionBox.get(sessionId);
+
         final resultOscilloscopeMsgEntity = oscilloscopeMsgEntityBox.get(id);
-        return OscilloscopeCapture(
-          isEnabled: resultSession!.oscilloscope.target!.isEnabled,
-          isDecodeEnabled: resultOscilloscopeMsgEntity!.isDecodeEnabled,
+        return OscilloscopeMsg(
+          id: resultOscilloscopeMsgEntity!.id,
+          isDecodeEnabled: resultOscilloscopeMsgEntity.isDecodeEnabled,
           decodeMode: type != null ? rawType : null,
           decodeFormat: type != null ? OscilloscopeDecodeFormat.hex.name : null,
           imageFilePath: resultOscilloscopeMsgEntity.imageFilePath,
@@ -365,9 +364,24 @@ class SessionRepo {
               ),
             );
           }
+          provider.runWithOutReturning(setOscilloscopeModeCommand(Mode.CLEAR));
+          provider.runWithOutReturning(setOscilloscopeModeCommand(Mode.SINGLE));
         },
       );
     }
+
+    await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.internalServerError.addMessage('Session not found');
+      }
+      session.isRunning = true;
+      session.startedAt = DateTime.now().toUtc();
+      session.lastUsedAt = DateTime.now().toUtc();
+      session.updatedAt = DateTime.now().toUtc();
+      sessionBox.put(session);
+    }, [sessionId]);
 
     _keepAlive = Timer(SessionRepo.timeout, () {
       stopPolling();
@@ -411,6 +425,19 @@ class SessionRepo {
     _serialPolling = null;
     _sessionId = null;
     _keepAlive = null;
+
+    await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.internalServerError.addMessage('Session not found');
+      }
+      session.isRunning = false;
+      session.stoppedAt = DateTime.now().toUtc();
+      session.updatedAt = DateTime.now().toUtc();
+      sessionBox.put(session);
+    }, [sessionId]);
+
     _isPolling = false;
   }
 
@@ -480,6 +507,122 @@ class SessionRepo {
       throw ErrorType.internalServerError.addMessage('Failed to get session');
     }
     return session;
+  }
+
+  Future<List<SessionEntity>> getSessions(
+    int sessionPerPage,
+    int page, {
+    String? searchParam,
+  }) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final sessionBox = store.box<SessionEntity>();
+      final [sessionPerPage as int, page as int, searchParam as String?] = params;
+      final query =
+          sessionBox
+              .query(
+                searchParam?.replaceAll(' ', '').isEmpty ?? true
+                    ? null
+                    : SessionEntity_.name.contains(searchParam!),
+              )
+              .build();
+
+      if (sessionPerPage < 1) {
+        throw ErrorType.invalidRequest.addMessage('Session per page must not be less than 1');
+      }
+      if (page < 1) {
+        throw ErrorType.invalidRequest.addMessage('Page must not be less than 1');
+      }
+      query.offset = (sessionPerPage * (page - 1));
+      query.limit = sessionPerPage;
+      return query.find();
+    }, [sessionPerPage, page, searchParam]);
+  }
+
+  Future<SpiMsgEntity> getLatestSpiMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final spiMsgs = session.spi.target?.spiMsgEntities.sortedBy((e) => e.createdAt);
+      if (spiMsgs == null || spiMsgs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No SPI messages found');
+      }
+      final spiMsg = spiMsgs.last;
+      return spiMsg;
+    }, [sessionId]);
+  }
+
+  Future<I2cMsgEntity> getLatestI2cMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final i2cMsgs = session.i2c.target?.i2cMsgEntities.sortedBy((e) => e.createdAt);
+      if (i2cMsgs == null || i2cMsgs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No I2C messages found');
+      }
+      final i2cMsg = i2cMsgs.last;
+      return i2cMsg;
+    }, [sessionId]);
+  }
+
+  Future<ModbusMsgEntity> getLatestModbusMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final modbusMsgs = session.modbus.target?.modbusMsgEntities.sortedBy((e) => e.createdAt);
+      if (modbusMsgs == null || modbusMsgs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No Modbus messages found');
+      }
+      final modbusMsg = modbusMsgs.last;
+      return modbusMsg;
+    }, [sessionId]);
+  }
+
+  Future<OscilloscopeMsgEntity> getLatestOscilloscopeMsg(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final oscilloscopeMsgs = session.oscilloscope.target?.oscilloscopeMsgEntities.sortedBy(
+        (e) => e.createdAt,
+      );
+      if (oscilloscopeMsgs == null || oscilloscopeMsgs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No Oscilloscope messages found');
+      }
+      final oscilloscopeMsg = oscilloscopeMsgs.last;
+      return oscilloscopeMsg;
+    }, [sessionId]);
+  }
+
+  Future<LogEntity> getLatestLog(int sessionId) async {
+    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final [sessionId] = params;
+      final sessionBox = store.box<SessionEntity>();
+      final session = sessionBox.get(sessionId);
+      if (session == null) {
+        throw ErrorType.badRequest.addMessage('Session not found');
+      }
+      final logs = session.logs.sortedBy((e) => e.createdAt);
+      if (logs.isEmpty) {
+        throw ErrorType.badRequest.addMessage('No logs found');
+      }
+      final log = logs.last;
+      return log;
+    }, [sessionId]);
   }
 
   Future<SessionEntity> editSession(
@@ -563,11 +706,47 @@ class SessionRepo {
     if (session == null) {
       throw ErrorType.internalServerError.addMessage('Failed to edit session');
     }
+
+    if (session.id == sessionId) {
+      final isEnabled = session.oscilloscope.target!.isEnabled;
+      final isAppropriate = session.oscilloscope.target!.appropriate;
+      if (isEnabled && isAppropriate) {
+        await OscilloscopeApiProvider.template(
+          session.oscilloscope.target!.ip!,
+          session.oscilloscope.target!.port!,
+          (provider) {
+            if (session.oscilloscope.target!.decodeModeEnum != null) {
+              provider.runWithOutReturning(
+                setDecodeModeCommand(
+                  OscilloscopeDecoder.one,
+                  session.oscilloscope.target!.decodeModeEnum!,
+                ),
+              );
+            }
+            if (session.oscilloscope.target!.decodeFormatEnum != null) {
+              provider.runWithOutReturning(
+                setDecodeFormatCommand(
+                  OscilloscopeDecoder.one,
+                  session.oscilloscope.target!.decodeFormatEnum!,
+                ),
+              );
+            }
+            provider.runWithOutReturning(setOscilloscopeModeCommand(Mode.CLEAR));
+            provider.runWithOutReturning(setOscilloscopeModeCommand(Mode.SINGLE));
+          },
+        );
+      }
+    }
+
     return session;
   }
 
   Future<List<bool>> deleteSession(int id) async {
-    return DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
+    if (id == sessionId) {
+      await stopPolling();
+    }
+
+    final result = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
       final sessionBox = store.box<SessionEntity>();
       final logBox = store.box<LogEntity>();
       final i2cBox = store.box<I2cEntity>();
@@ -620,5 +799,7 @@ class SessionRepo {
       successList.add(sessionBox.remove(id));
       return successList;
     }, [id]);
+
+    return result;
   }
 }
