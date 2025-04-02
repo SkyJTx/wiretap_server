@@ -102,7 +102,7 @@ class Session {
       stoppedAt: map['stoppedAt'] != null ? DateTime.parse(map['stoppedAt'] as String) : null,
       startedAt: map['startedAt'] != null ? DateTime.parse(map['startedAt'] as String) : null,
       logs: List<Log>.from(
-        (map['logs'] as List<int>).map<Log>((x) => Log.fromMap(x as Map<String, dynamic>)),
+        (map['logs'] as List).map<Log>((x) => Log.fromMap(x as Map<String, dynamic>)),
       ),
       i2c: I2c.fromMap(map['i2c'] as Map<String, dynamic>),
       spi: Spi.fromMap(map['spi'] as Map<String, dynamic>),

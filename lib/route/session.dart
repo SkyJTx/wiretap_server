@@ -5,6 +5,7 @@ import 'package:wiretap_server/controller/session/session.dart';
 final sessionRouter =
     Router()
       ..get('/', (Request req) => Response.ok('Hello, World! Your session router is working!'))
+      ..get('/search', getSessions)
       ..get('/<id>', (Request req) {
         final id = int.tryParse(req.params['id'] ?? '');
         if (id == null) {
@@ -12,10 +13,9 @@ final sessionRouter =
         }
         return getSessionById(req);
       })
-      ..get('/search', getSessions)
       ..post('/', createSession)
-      ..post('/start/<id>', startSession)
       ..post('/stop', stopSession)
+      ..post('/start/<id>', startSession)
       ..put('/<id>', editSession)
       ..delete('/<id>', deleteSession)
       ..mount('/spi', spiRouter.call)
@@ -33,7 +33,7 @@ final i2cRouter =
     Router()
       ..get('/latest/<id>', getLatestI2cMsg)
       ..get('/all/<id>', getAllI2cMsg);
-  
+
 final modbusRouter =
     Router()
       ..get('/latest/<id>', getLatestModbusMsg)
@@ -48,4 +48,3 @@ final logRouter =
     Router()
       ..get('/latest/<id>', getLatestLog)
       ..get('/all/<id>', getAllLog);
-

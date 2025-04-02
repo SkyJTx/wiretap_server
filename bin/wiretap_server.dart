@@ -9,6 +9,9 @@ void main(List<String> arguments) async {
   final port = int.tryParse(env['PORT'] ?? '') ?? 8080;
   final app = App(ip, port);
   DatabaseRepo().init();
+  await DatabaseRepo().storeReady;
   await app.start();
   print('Server started on http://${app.address.address}:${app.port}');
+  print('Hello, World! Your server is working!');
+  print('Press Ctrl+C to stop the server');
 }

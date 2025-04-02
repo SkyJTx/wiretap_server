@@ -34,8 +34,10 @@ Future<Response> editSession(Request req) async {
     enableOscilloscope = data['enableOscilloscope'] as bool?;
     ip = data['ip'] as String?;
     port = data['port'] as int?;
-    activeDecodeMode = OscilloscopeDecodeMode.tryParse(data['activeDecodeMode'] as String? ?? '')?.index;
-    activeDecodeFormat = OscilloscopeDecodeFormat.tryParse(data['activeDecodeFormat'] as String? ?? '')?.index;
+    activeDecodeMode =
+        OscilloscopeDecodeMode.tryParse(data['activeDecodeMode'] as String? ?? '')?.index;
+    activeDecodeFormat =
+        OscilloscopeDecodeFormat.tryParse(data['activeDecodeFormat'] as String? ?? '')?.index;
   } catch (e) {
     return ErrorType.badRequest.toResponse('Invalid request body');
   }
@@ -63,10 +65,7 @@ Future<Response> editSession(Request req) async {
   }
 
   return Response.ok(
-    Data(
-      message: 'Session $id edited',
-      data: Session.fromEntity(sessionEntity).toMap(),
-    ).toJson(),
+    Data(message: 'Session $id edited', data: Session.fromEntity(sessionEntity).toMap()).toJson(),
     headers: jsonHeader,
   );
 }

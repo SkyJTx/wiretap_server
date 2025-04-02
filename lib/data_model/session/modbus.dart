@@ -53,7 +53,7 @@ class Modbus {
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
       modbusMsgEntities: List<ModbusMsg>.from(
-        (map['modbusMsgEntities'] as List<int>).map<ModbusMsg>(
+        (map['modbusMsgEntities'] as List).map<ModbusMsg>(
           (x) => ModbusMsg.fromMap(x as Map<String, dynamic>),
         ),
       ),

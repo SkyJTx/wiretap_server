@@ -656,11 +656,8 @@ class SessionRepo {
   }
 
   Future<SessionEntity> createSession(String name) async {
-    final session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (
-      store,
-      serialPortName,
-    ) {
-      final sessionBox = DatabaseRepo().store.box<SessionEntity>();
+    final session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, name) {
+      final sessionBox = store.box<SessionEntity>();
       final session = SessionEntity(
         name: name,
         isRunning: false,
@@ -693,7 +690,7 @@ class SessionRepo {
       session.oscilloscope.target = oscilloscopeEntity;
       final sessionId = sessionBox.put(session);
       return sessionBox.get(sessionId);
-    }, [name]);
+    }, name);
     if (session == null) {
       throw ErrorType.internalServerError.addMessage('Failed to create session');
     }
@@ -723,12 +720,8 @@ class SessionRepo {
     return session;
   }
 
-  Future<List<SessionEntity>> getSessions(
-    int sessionPerPage,
-    int page, {
-    String? searchParam,
-  }) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+  Future<List<SessionEntity>> getSessions(int sessionPerPage, int page, {String? searchParam}) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final sessionBox = store.box<SessionEntity>();
       final [sessionPerPage as int, page as int, searchParam as String?] = params;
       final query =
@@ -752,8 +745,24 @@ class SessionRepo {
     }, [sessionPerPage, page, searchParam]);
   }
 
-  Future<List<SpiMsgEntity>> getAllSpiMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+  Future<int> getSessionCount({String? searchParam}) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+      final sessionBox = store.box<SessionEntity>();
+      final [searchParam] = params;
+      final query =
+          sessionBox
+              .query(
+                searchParam?.replaceAll(' ', '').isEmpty ?? true
+                    ? null
+                    : SessionEntity_.name.contains(searchParam!),
+              )
+              .build();
+      return query.count();
+    }, [searchParam]);
+  }
+
+  Future<List<SpiMsgEntity>> getAllSpiMsg(int sessionId) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -769,7 +778,7 @@ class SessionRepo {
   }
 
   Future<List<I2cMsgEntity>> getAllI2cMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -785,7 +794,7 @@ class SessionRepo {
   }
 
   Future<List<ModbusMsgEntity>> getAllModbusMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -801,7 +810,7 @@ class SessionRepo {
   }
 
   Future<List<OscilloscopeMsgEntity>> getAllOscilloscopeMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -819,7 +828,7 @@ class SessionRepo {
   }
 
   Future<List<LogEntity>> getAllLog(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -835,7 +844,7 @@ class SessionRepo {
   }
 
   Future<SpiMsgEntity> getLatestSpiMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -852,7 +861,7 @@ class SessionRepo {
   }
 
   Future<I2cMsgEntity> getLatestI2cMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -869,7 +878,7 @@ class SessionRepo {
   }
 
   Future<ModbusMsgEntity> getLatestModbusMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -886,7 +895,7 @@ class SessionRepo {
   }
 
   Future<OscilloscopeMsgEntity> getLatestOscilloscopeMsg(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -905,7 +914,7 @@ class SessionRepo {
   }
 
   Future<LogEntity> getLatestLog(int sessionId) async {
-    return await DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
+    return DatabaseRepo().store.runInTransactionAsync(TxMode.read, (store, params) {
       final [sessionId] = params;
       final sessionBox = store.box<SessionEntity>();
       final session = sessionBox.get(sessionId);
@@ -945,8 +954,16 @@ class SessionRepo {
           enableOscilloscope as bool?,
           ip as String?,
           port as int?,
+          activeDecodeMode as int?,
+          activeDecodeFormat as int?,
         ] = params;
-        final sessionBox = DatabaseRepo().store.box<SessionEntity>();
+        print('params: $params');
+        print('edit session 0');
+        final sessionBox = store.box<SessionEntity>();
+        final i2cBox = store.box<I2cEntity>();
+        final spiBox = store.box<SpiEntity>();
+        final modbusBox = store.box<ModbusEntity>();
+        final oscilloscopeBox = store.box<OscilloscopeEntity>();
         final session = sessionBox.get(id);
         if (session == null) {
           throw ErrorType.badRequest.addMessage('Session not found');
@@ -954,51 +971,66 @@ class SessionRepo {
         if ([enableI2c, enableSpi, enableModbus].where((e) => e == true).length > 1) {
           throw ErrorType.badRequest.addMessage('Only one peripheral can be enabled at a time');
         }
+        final i2cEntity = session.i2c.target!;
+        final spiEntity = session.spi.target!;
+        final modbusEntity = session.modbus.target!;
+        final oscilloscopeEntity = session.oscilloscope.target!;
+        print('edit session 1');
         if (enableI2c == true) {
-          session.spi.target?.isEnabled = false;
-          session.modbus.target?.isEnabled = false;
+          spiEntity.isEnabled = false;
+          modbusEntity.isEnabled = false;
         } else if (enableSpi == true) {
-          session.i2c.target?.isEnabled = false;
-          session.modbus.target?.isEnabled = false;
+          i2cEntity.isEnabled = false;
+          modbusEntity.isEnabled = false;
         } else if (enableModbus == true) {
-          session.i2c.target?.isEnabled = false;
-          session.spi.target?.isEnabled = false;
+          i2cEntity.isEnabled = false;
+          spiEntity.isEnabled = false;
         }
         if (enableI2c != null) {
-          session.i2c.target?.isEnabled = enableI2c;
+          i2cEntity.isEnabled = enableI2c;
         }
         if (enableSpi != null) {
-          session.spi.target?.isEnabled = enableSpi;
+          spiEntity.isEnabled = enableSpi;
         }
         if (enableModbus != null) {
-          session.modbus.target?.isEnabled = enableModbus;
+          modbusEntity.isEnabled = enableModbus;
         }
-
-        final checkEnableOscilloscopeIsAppropriate = () {
-          final oscilloscopeEntityIsEnabled = session.oscilloscope.target?.isEnabled;
-          if (oscilloscopeEntityIsEnabled == null) {
-            return enableOscilloscope == true && ip != null && port != null;
+        print('edit session 2');
+        if (enableOscilloscope ?? session.oscilloscope.target!.isEnabled) {
+          oscilloscopeEntity.isEnabled =
+              enableOscilloscope ?? oscilloscopeEntity.isEnabled;
+          if (ip != null) {
+            oscilloscopeEntity.ip = ip;
           }
-          return true;
-        }();
-        if (checkEnableOscilloscopeIsAppropriate) {
-          session.oscilloscope.target?.isEnabled = enableOscilloscope!;
-          session.oscilloscope.target?.ip = ip!;
-          session.oscilloscope.target?.port = port!;
+          if (port != null) {
+            oscilloscopeEntity.port = port;
+          }
+        } else {
+          oscilloscopeEntity.isEnabled = false;
+          oscilloscopeEntity.ip = ip ?? session.oscilloscope.target?.ip;
+          oscilloscopeEntity.port = port ?? session.oscilloscope.target?.port;
         }
         if (activeDecodeMode != null) {
-          session.oscilloscope.target?.activeDecodeMode = activeDecodeMode;
+          oscilloscopeEntity.activeDecodeMode = activeDecodeMode;
         }
         if (activeDecodeFormat != null) {
-          session.oscilloscope.target?.activeDecodeFormat = activeDecodeFormat;
+          oscilloscopeEntity.activeDecodeFormat = activeDecodeFormat;
         }
         if (name != null) {
           session.name = name;
         }
 
         session.updatedAt = DateTime.now().toUtc();
-
-        return sessionBox.get(sessionBox.put(session));
+        print('edit session 3');
+        spiBox.put(spiEntity);
+        i2cBox.put(i2cEntity);
+        modbusBox.put(modbusEntity);
+        oscilloscopeBox.put(oscilloscopeEntity);
+        sessionBox.put(session);
+        print('edit session 4');
+        final realId = sessionBox.put(session);
+        print('edit session 4');
+        return sessionBox.get(realId);
       },
       [
         id,
@@ -1006,6 +1038,7 @@ class SessionRepo {
         enableI2c,
         enableSpi,
         enableModbus,
+        enableOscilloscope,
         ip,
         port,
         activeDecodeMode,
@@ -1015,8 +1048,8 @@ class SessionRepo {
     if (session == null) {
       throw ErrorType.internalServerError.addMessage('Failed to edit session');
     }
-
-    if (session.id == sessionId) {
+    print('edit session 5');
+    if (session.id == _sessionId && session.isRunning && _sessionId != null) {
       if (enableI2c == true) {
         _serialPolling?.send({
           'command': SerialData(type: 'I2C', data: 'Enable').toJson(),
@@ -1036,7 +1069,10 @@ class SessionRepo {
 
       final isEnabled = session.oscilloscope.target!.isEnabled;
       final isAppropriate = session.oscilloscope.target!.appropriate;
-      if (isEnabled && isAppropriate) {
+      if (isEnabled &&
+          isAppropriate &&
+          session.oscilloscope.target!.ip != null &&
+          session.oscilloscope.target!.port != null) {
         await OscilloscopeApiProvider.template(
           session.oscilloscope.target!.ip!,
           session.oscilloscope.target!.port!,
@@ -1068,7 +1104,7 @@ class SessionRepo {
   }
 
   Future<List<bool>> deleteSession(int id) async {
-    if (id == sessionId) {
+    if (id == _sessionId && _isPolling && _sessionId != null) {
       await stopPolling();
     }
 

@@ -15,6 +15,8 @@ class DatabaseRepo {
   DatabaseRepo.createInstance();
 
   final Completer<void> _storeCompleter = Completer<void>();
+  bool isStoreReady = false;
+  Future<void> get storeReady => _storeCompleter.future;
   Store? _store;
 
   static DatabaseRepo? _instance;
@@ -25,13 +27,13 @@ class DatabaseRepo {
   }
 
   Store get store {
-    if (!_storeCompleter.isCompleted) {
+    if (_store == null) {
       throw ErrorType.internalServerError.addMessage('Database is not ready');
     }
     return _store!;
   }
 
-  void init() async {
+  void init() {
     final path = directory.path;
     _store = openStore(directory: path);
     
@@ -55,7 +57,7 @@ class DatabaseRepo {
       );
       userBox.put(user);
     }
-
+    isStoreReady = true;
     _storeCompleter.complete();
   }
 }

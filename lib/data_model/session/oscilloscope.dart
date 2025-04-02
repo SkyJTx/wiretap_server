@@ -78,7 +78,7 @@ class Oscilloscope {
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
       oscilloscopeMsgEntities: List<OscilloscopeMsg>.from(
-        (map['oscilloscopeMsgEntities'] as List<int>).map<OscilloscopeMsg>(
+        (map['oscilloscopeMsgEntities'] as List).map<OscilloscopeMsg>(
           (x) => OscilloscopeMsg.fromMap(x as Map<String, dynamic>),
         ),
       ),
