@@ -85,7 +85,6 @@ class SessionRepo {
   }
 
   ReceivePort? _errorSendPort;
-  ReceivePort? _exitReceivePort;
   ReceivePort? _isolateTerminateSendPort;
   StreamSubscription<Map<String, dynamic>>? _inputSub;
   StreamSubscription<dynamic>? _receiveSub;
@@ -432,6 +431,7 @@ class SessionRepo {
       throw ErrorType.internalServerError.addMessage('Session already exist');
     }
     serialPortName ??= defaultSerialPort;
+    print(serialPortName);
     _sessionId = session.id;
     _isolateTerminationCompleter = Completer();
     _inputController = StreamController.broadcast();
@@ -442,7 +442,6 @@ class SessionRepo {
       final serialInput = StreamController<String>.broadcast();
       final serialPortNameCompleter = Completer<String>();
       final errorSendPortCompleter = Completer<SendPort>();
-      final exitReceivePortCompleter = Completer<ReceivePort>();
       final isolateTerminateSendPortCompleter = Completer<SendPort>();
       final terminateCompleter = Completer<bool>();
 
@@ -450,28 +449,27 @@ class SessionRepo {
         if (message is Map<String, dynamic> &&
             message['serialPort'] is String &&
             message['errorSendPort'] is SendPort &&
-            message['exitReceivePort'] is ReceivePort &&
             message['isolateTerminateSendPort'] is SendPort) {
           serialPortNameCompleter.complete(message['serialPort']);
           errorSendPortCompleter.complete(message['errorSendPort']);
-          exitReceivePortCompleter.complete(message['exitReceivePort']);
           isolateTerminateSendPortCompleter.complete(message['isolateTerminateSendPort']);
         } else if (message is Map<String, dynamic> &&
             message['command'] is String &&
             message['target'] == 'serial') {
           final command = message['command'];
           serialInput.add(command);
+        } else if (message is Map<String, dynamic> && message['target'] == 'terminate') {
+          terminateCompleter.complete(true);
         }
       });
 
+      print('start i 1');
+
       final serialPortName = await serialPortNameCompleter.future;
       final errorSendPort = await errorSendPortCompleter.future;
-      final exitReceivePort = await exitReceivePortCompleter.future;
       final isolateTerminateSendPort = await isolateTerminateSendPortCompleter.future;
 
-      final exitReceiveSub = exitReceivePort.listen((message) {
-        terminateCompleter.complete(true);
-      });
+      print('start i 2');
 
       SerialRepo? serialRepo;
       StreamSubscription<Uint8List>? serialSub;
@@ -479,7 +477,9 @@ class SessionRepo {
       try {
         serialRepo = SerialRepo(name: serialPortName);
         serialSub = serialRepo.outputController.stream.listen((data) {
-          sendPort.send(String.fromCharCodes(data));
+          final str = String.fromCharCodes(data);
+          print(' $str');
+          sendPort.send(str);
         });
         inputSub = serialInput.stream.listen((message) async {
           serialRepo?.write(message);
@@ -488,7 +488,9 @@ class SessionRepo {
         errorSendPort.send('Serial port cannot be opened: $serialPortName');
         terminateCompleter.complete(true);
       }
-      final pingTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+      print('start i 3');
+
+      final pingTimer = Timer.periodic(Duration(seconds: 2), (timer) {
         serialInput.add(SerialData(type: 'Keep Alive', data: 'Ping').toJson());
       });
       await terminateCompleter.future;
@@ -497,13 +499,12 @@ class SessionRepo {
       await serialSub?.cancel();
       await inputSub?.cancel();
       serialRepo?.close();
-      exitReceiveSub.cancel();
-      exitReceivePort.close();
       isolateTerminateSendPort.send(null);
     });
 
+    print('start i 4');
+
     _errorSendPort = ReceivePort();
-    _exitReceivePort = ReceivePort();
     _isolateTerminateSendPort = ReceivePort();
 
     await _serialPolling!.create();
@@ -529,12 +530,15 @@ class SessionRepo {
       _isolateTerminationCompleter!.complete();
     });
 
+    print('start i 5');
+
     _serialPolling!.send({
       'serialPort': serialPortName,
       'errorSendPort': _errorSendPort!.sendPort,
-      'exitReceivePort': _exitReceivePort!,
       'isolateTerminateSendPort': _isolateTerminateSendPort!.sendPort,
     });
+
+    print('start i 6');
 
     _isPolling = true;
     _pollingController!.add(true);
@@ -573,7 +577,7 @@ class SessionRepo {
       params,
     ) {
       final sessionBox = store.box<SessionEntity>();
-      final session = sessionBox.get(sessionId);
+      final session = sessionBox.get(params);
       if (session == null) {
         throw ErrorType.internalServerError.addMessage('Session not found');
       }
@@ -583,7 +587,7 @@ class SessionRepo {
       session.updatedAt = DateTime.now().toUtc();
       final id = sessionBox.put(session);
       return sessionBox.get(id);
-    }, [sessionId]);
+    }, sessionId);
 
     _keepAlive = Timer(SessionRepo.timeout, keepAliveFunction);
 
@@ -599,7 +603,7 @@ class SessionRepo {
       throw ErrorType.internalServerError.addMessage('No session');
     }
     await wsRepo.removeAllWebSocket();
-    _exitReceivePort!.sendPort.send(true);
+    _serialPolling!.send({'target': 'terminate'});
     await _isolateTerminationCompleter!.future;
     _keepAlive?.cancel();
     await _inputSub!.cancel();
@@ -613,7 +617,6 @@ class SessionRepo {
     await _errorController!.close();
     await _pollingController!.close();
     _errorSendPort!.close();
-    _exitReceivePort!.close();
     _isolateTerminateSendPort!.close();
 
     _inputController = null;
@@ -621,7 +624,6 @@ class SessionRepo {
     _errorController = null;
     _pollingController = null;
     _errorSendPort = null;
-    _exitReceivePort = null;
     _isolateTerminateSendPort = null;
     _inputSub = null;
     _receiveSub = null;
@@ -997,8 +999,7 @@ class SessionRepo {
         }
         print('edit session 2');
         if (enableOscilloscope ?? session.oscilloscope.target!.isEnabled) {
-          oscilloscopeEntity.isEnabled =
-              enableOscilloscope ?? oscilloscopeEntity.isEnabled;
+          oscilloscopeEntity.isEnabled = enableOscilloscope ?? oscilloscopeEntity.isEnabled;
           if (ip != null) {
             oscilloscopeEntity.ip = ip;
           }

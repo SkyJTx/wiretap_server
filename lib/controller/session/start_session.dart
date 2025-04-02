@@ -39,7 +39,8 @@ Future<Response> startSession(Request req) async {
     return e.toResponse();
   } on Response catch (e) {
     return e;
-  } catch (e) {
+  } catch (e, s) {
+    print('$e\n$s');
     return ErrorType.internalServerError.toResponse('Failed to start session');
   }
 

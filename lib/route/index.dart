@@ -18,7 +18,8 @@ final router =
         Pipeline()
             .addMiddleware(token.verifyAccessByToken(token.VerificationType.accessToken))
             .addHandler(sessionRouter.call),
-      )..mount('/test', testerRouter.call);
+      )
+      ..mount('/test', testerRouter.call);
 
 final testerRouter =
     Router()
