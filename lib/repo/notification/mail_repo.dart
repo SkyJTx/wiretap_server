@@ -15,7 +15,9 @@ class MailRepo {
     smtpServer = PersistentConnection(_smtpServer);
     inputSubscription = inputController.stream.listen((message) async {
       try {
-        await smtpServer.send(message);
+        print('Sending email...');
+        final report = await smtpServer.send(message);
+        print('Message sent: ${report.mail}');
       } catch (e) {
         print('Error sending email: $e');
       }
@@ -35,11 +37,12 @@ class MailRepo {
   }
 
   Message createMessage(String subject, String body) {
-    final message = Message()
-      ..from = Address(env['EMAIL']!, 'Wiretap Server')
-      ..recipients.add(env['EMAIL_SENDTO']!)
-      ..subject = 'Wiretap Server Notification'
-      ..text = body;
+    final message =
+        Message()
+          ..from = Address(env['EMAIL']!, 'Wiretap Server')
+          ..recipients.add(env['EMAIL_SENDTO']!)
+          ..subject = 'Wiretap Server Notification'
+          ..text = body;
     return message;
   }
 

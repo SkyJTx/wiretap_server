@@ -25,5 +25,6 @@ final testerRouter =
     Router()
       ..get('/', (Request req) => Response.ok('Hello, World! Your tester router is working!'))
       ..get('/get_available_port', (Request req) {
-        return Response.ok(availableSerialPort);
+        print(availableSerialPort);
+        return Response.ok("free port: ");
       });

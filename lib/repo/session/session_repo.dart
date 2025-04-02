@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:libserialport/libserialport.dart';
 import 'package:wiretap_server/component/task.dart';
 import 'package:wiretap_server/constant/constant.dart';
 import 'package:wiretap_server/data_model/data.dart';
@@ -30,6 +31,7 @@ import 'package:wiretap_server/repo/notification/mail_repo.dart';
 import 'package:wiretap_server/repo/oscilloscope/oscilloscope_api_provider.dart';
 import 'package:wiretap_server/repo/serial/serial_repo.dart';
 import 'package:wiretap_server/repo/websocket/websocket_repo.dart';
+import 'package:wiretap_server/wiretap_server.dart';
 
 class SessionRepo {
   StreamController<Map<String, dynamic>>? _inputController;
@@ -68,11 +70,10 @@ class SessionRepo {
     return result;
   }
 
-  static const timeout = Duration(seconds: 10);
+  static const timeout = Duration(seconds: 60);
   static String oscilloscopeMsgFilePath(int sessionId) => 'public/oscilloscope/$sessionId';
   void keepAliveFunction() async {
     if (_isPolling) {
-      _keepAlive?.cancel();
       final now = DateTime.now().toUtc();
       MailRepo().sendMail(
         MailRepo().createMessage(
@@ -80,6 +81,7 @@ class SessionRepo {
           'Serial port is not responding at ${now.year}/${now.month}/${now.day} ${now.hour}:${now.minute}:${now.second} (UTC+0). Please check the WireTap Notifier.',
         ),
       );
+      _keepAlive?.cancel();
       await stopPolling();
     }
   }
@@ -427,9 +429,13 @@ class SessionRepo {
     String? serialPortName,
     required SessionEntity session,
   }) async {
-    if (_isPolling) {
-      throw ErrorType.internalServerError.addMessage('Session already exist');
+    if (_isPolling && _sessionId == session.id) {
+      return session;
     }
+    if (_isPolling && _sessionId != session.id) {
+      await stopPolling();
+    }
+
     serialPortName ??= defaultSerialPort;
     print(serialPortName);
     _sessionId = session.id;
@@ -474,24 +480,35 @@ class SessionRepo {
       SerialRepo? serialRepo;
       StreamSubscription<Uint8List>? serialSub;
       StreamSubscription<String>? inputSub;
-      try {
-        serialRepo = SerialRepo(name: serialPortName);
-        serialSub = serialRepo.outputController.stream.listen((data) {
-          final str = String.fromCharCodes(data);
-          print(' $str');
-          sendPort.send(str);
-        });
-        inputSub = serialInput.stream.listen((message) async {
-          serialRepo?.write(message);
-        });
-      } catch (e) {
-        errorSendPort.send('Serial port cannot be opened: $serialPortName');
-        terminateCompleter.complete(true);
+      final availablePort = SerialPort.availablePorts;
+      for (int i = 0; i < availablePort.length; i++) {
+        print('Available Port: ${availablePort[i]}');
+        try {
+          serialRepo = SerialRepo(name: availablePort[i]);
+          serialSub = serialRepo.outputController.stream.listen((data) {
+            final str = String.fromCharCodes(data);
+            print('$str Received From Serial Port');
+            sendPort.send(str);
+          });
+          inputSub = serialInput.stream.listen((message) async {
+            print('$message Send To Serial Port');
+            serialRepo?.write(message);
+          });
+          break;
+        } catch (e) {
+          errorSendPort.send('Serial port cannot be opened: $serialPortName Due to $e');
+          if (i == availablePort.length - 1) {
+            print('Trigger Terminate');
+            terminateCompleter.complete(true);
+          }
+        }
       }
       print('start i 3');
 
       final pingTimer = Timer.periodic(Duration(seconds: 2), (timer) {
-        serialInput.add(SerialData(type: 'Keep Alive', data: 'Ping').toJson());
+        final ping = SerialData(type: 'Keep Alive', data: 'Ping').toJson();
+        print(ping);
+        serialInput.add('$ping Send To Isolate Sender');
       });
       await terminateCompleter.future;
       pingTimer.cancel();
@@ -515,18 +532,22 @@ class SessionRepo {
     });
     _receiveSub = _serialPolling!.receiver.stream.listen((message) {
       if (message is String) {
+        print('$message Received From Isolate Sender');
         _outputController?.add(message);
       }
     });
     _outputSub = _outputController!.stream.listen((message) {
+      print('$message Reached for Handling');
       _handleSerialData(message);
     });
     _errorSub = _errorSendPort!.listen((message) {
       if (message is String) {
+        print('$message Received From Isolate Sender');
         _errorController!.add(ErrorType.internalServerError.addMessage(message));
       }
     });
     _isolateTerminationSub = _isolateTerminateSendPort!.listen((message) {
+      print('Isolate Terminated');
       _isolateTerminationCompleter!.complete();
     });
 
@@ -540,7 +561,6 @@ class SessionRepo {
 
     print('start i 6');
 
-    _isPolling = true;
     _pollingController!.add(true);
 
     final isEnabled = session.oscilloscope.target!.isEnabled;
@@ -595,29 +615,32 @@ class SessionRepo {
       throw ErrorType.internalServerError.addMessage('Failed to create session');
     }
 
+    _isPolling = true;
+
     return newSession;
   }
 
-  Future<SessionEntity> stopPolling() async {
+  Future<SessionEntity?> stopPolling() async {
     if (!_isPolling) {
-      throw ErrorType.internalServerError.addMessage('No session');
+      return null;
     }
+
     await wsRepo.removeAllWebSocket();
-    _serialPolling!.send({'target': 'terminate'});
-    await _isolateTerminationCompleter!.future;
+    _serialPolling?.send({'target': 'terminate'});
+    await _isolateTerminationCompleter?.future;
     _keepAlive?.cancel();
-    await _inputSub!.cancel();
-    await _receiveSub!.cancel();
-    await _outputSub!.cancel();
-    await _errorSub!.cancel();
-    await _isolateTerminationSub!.cancel();
-    await _serialPolling!.stop();
-    await _inputController!.close();
-    await _outputController!.close();
-    await _errorController!.close();
-    await _pollingController!.close();
-    _errorSendPort!.close();
-    _isolateTerminateSendPort!.close();
+    await _inputSub?.cancel();
+    await _receiveSub?.cancel();
+    await _outputSub?.cancel();
+    await _errorSub?.cancel();
+    await _isolateTerminationSub?.cancel();
+    await _serialPolling?.stop();
+    await _inputController?.close();
+    await _outputController?.close();
+    await _errorController?.close();
+    await _pollingController?.close();
+    _errorSendPort?.close();
+    _isolateTerminateSendPort?.close();
 
     _inputController = null;
     _outputController = null;
@@ -632,7 +655,6 @@ class SessionRepo {
     _isolateTerminationSub = null;
     _isolateTerminationCompleter = null;
     _serialPolling = null;
-    _sessionId = null;
     _keepAlive = null;
 
     final session = await DatabaseRepo().store.runInTransactionAsync(TxMode.write, (store, params) {
@@ -648,11 +670,12 @@ class SessionRepo {
       return sessionBox.get(id);
     }, [sessionId]);
 
-    _isPolling = false;
-
     if (session == null) {
       throw ErrorType.internalServerError.addMessage('Failed to stop session');
     }
+
+    _sessionId = null;
+    _isPolling = false;
 
     return session;
   }

@@ -20,8 +20,9 @@ class OscilloscopeApiProvider {
 
   static FutureOr<T> template<T>(String ip, int port, FutureOr<T> Function(OscilloscopeApiProvider provider) function) async {
     final oscilloscope = OscilloscopeApiProvider(ip: ip, port: port);
-    await oscilloscope.connect();
+    
     try {
+      await oscilloscope.connect();
       return await function(oscilloscope);
     } finally {
       await oscilloscope.disconnect();

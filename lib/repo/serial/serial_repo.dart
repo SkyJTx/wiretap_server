@@ -12,18 +12,12 @@ class SerialRepo {
   late final SerialPortReader reader;
 
   final outputController = StreamController<Uint8List>.broadcast();
-  late final StreamSubscription<Uint8List>? _outputSubscription;
+  StreamSubscription<Uint8List>? _outputSubscription;
 
-  SerialRepo({
-    String? name,
-    int baudRate = 115200,
-    int bits = 8,
-    int parity = 0,
-    int stopBits = 1,
-  }) {
+  SerialRepo({String? name, int baudRate = 9600, int bits = 8, int parity = 0, int stopBits = 1}) {
     port = SerialPort(name ?? SerialPort.availablePorts.first);
     reader = SerialPortReader(port);
-    port.config.baudRate = 115200;
+    port.config.baudRate = 9600;
     port.config.bits = 8;
     port.config.parity = 0;
     port.config.stopBits = 1;
@@ -51,11 +45,14 @@ class SerialRepo {
     if (port.isOpen) {
       final byte = switch (data) {
         Uint8List u => u,
-        String s => Uint8List.fromList(s.codeUnits),
+        String s => Uint8List.fromList('$s\n'.codeUnits),
         List<int> l => Uint8List.fromList(l),
         _ => Uint8List.fromList(data.toString().codeUnits),
       };
-      port.write(byte);
+      final byteLength = port.write(byte);
+      print('Wrote $byteLength bytes to port "${port.name ?? 'Unknown'}"');
+      print('Data: ${String.fromCharCodes(byte)}');
+      print('Data length: ${byte.length}');
     } else {
       throw ErrorType.internalServerError.addMessage('Port is not open');
     }

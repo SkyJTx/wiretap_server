@@ -7,7 +7,7 @@ import 'package:wiretap_server/repo/database/entity/session_entity/session_entit
 import 'package:wiretap_server/repo/session/session_repo.dart';
 
 Future<Response> stopSession(Request req) async {
-  late final SessionEntity newSessionEntity;
+  SessionEntity? newSessionEntity;
   try {
     newSessionEntity = await SessionRepo().stopPolling();
   } on ErrorBase catch (e) {
@@ -19,7 +19,10 @@ Future<Response> stopSession(Request req) async {
   }
 
   return Response.ok(
-    Data(message: 'Session started', data: Session.fromEntity(newSessionEntity).toMap()).toJson(),
+    Data(
+      message: 'Session started',
+      data: newSessionEntity != null ? Session.fromEntity(newSessionEntity).toMap() : null,
+    ).toJson(),
     headers: jsonHeader,
   );
 }

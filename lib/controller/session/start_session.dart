@@ -25,10 +25,6 @@ Future<Response> startSession(Request req) async {
     return ErrorType.internalServerError.toResponse('Failed to start session');
   }
 
-  if (sessionEntity.isRunning) {
-    return ErrorType.badRequest.toResponse('Session is already running');
-  }
-
   late final SessionEntity newSessionEntity;
   try {
     newSessionEntity = await SessionRepo().startPolling(
